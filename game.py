@@ -1,152 +1,114 @@
-from random import choice
+"""
+Uno game in python
+By Sebastian Mora @bastian1110
+"""
+
+from random import choice, sample
 import numpy as np
 
+# S = skip, R = reverse, T = take two
 COLORS = ["RED", "BLUE", "YELLOW", "GREEN"]
-NUMBERS = list(
-    range(
-        0,
-        10,
-    )
-)
+SYMBOLS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "S", "R", "T"]
 
 
-class Player:
-    def __init__(self, solution, n_cards=3) -> None:
-        self.id = 0
-        self.cards = {}
-        for i in range(n_cards):
-            self.cards[self.id] = {"color": choice(COLORS), "number": choice(NUMBERS)}
-            self.id += 1
-        self.solution = solution
-
-    def take_card(self) -> None:
-        if len(self.cards) == 3:
-            return
-        self.cards[self.id] = {"color": choice(COLORS), "number": choice(NUMBERS)}
-        self.id += 1
-
-    def leave_card(self, index) -> bool:
-        self.cards.pop(index)
-        return len(self.cards) == 0
-
-    def check_available(self, actual) -> dict:
-        options = {}
-        for key, value in self.cards.items():
-            if value["color"] == actual["color"] or value["number"] == actual["number"]:
-                options[key] = value
-        return options
-
-    def automatic_play(self, actual) -> int:
-        options = self.check_available(actual)
-        if options:
-            scores = [
-                self.solution[COLORS.index(actual["color"])][actual["number"]][
-                    COLORS.index(card["color"])
-                ][card["number"]]
-                for card in options.values()
-            ]
-            return list(options.keys())[np.argmax(scores)]
-        return -1
-
-    def print_cards(self) -> None:
-        for key, value in self.cards.items():
-            print(f"Index :  {key} : {value}")
+def createDeck() -> dict:
+    cards = {}
+    i = 0
+    for color in COLORS:
+        cards[i] = {"color": color, "symbol": "0"}
+        i += 1
+        for symbol in SYMBOLS:
+            cards[i] = {"color": color, "symbol": symbol}
+            i += 1
+            cards[i] = {"color": color, "symbol": symbol}
+            i += 1
+    for _ in range(4):
+        cards[i] = {"color": "ANY", "symbol": "ANY"}
+        i += 1
+        cards[i] = {"color": "ANY", "symbol": "F"}
+        i += 1
+    return cards
 
 
 class Game:
-    def __init__(self, n_rounds=25) -> None:
-        solution1 = np.random.rand(len(COLORS), len(NUMBERS), len(COLORS), len(NUMBERS))
-        self.player1 = Player(solution=solution1)
-        solution2 = np.random.rand(len(COLORS), len(NUMBERS), len(COLORS), len(NUMBERS))
-        self.player2 = Player(solution=solution2)
-        self.actual_card = {"color": choice(COLORS), "number": choice(NUMBERS)}
+    def __init__(self, cards: dict, n_players: int = 3) -> None:
+        self.cards = cards
+        self.draw = list(self.cards.keys())
+        first_card = choice(self.draw)
+        self.draw.remove(first_card)
+        self.stack = [first_card]
+        self.direction = False
+        self.top = self.cards[first_card]
+        self.players = []
+        for _ in range(n_players):
+            self.players.append(self.create_player())
+        print(f" First Card : {self.cards[first_card]}")
+        print(f" Stack Top : {self.stack[-1]}")
+        print(f" Draw Size : {len(self.draw)}")
 
-        for _ in range(0, n_rounds):
-            print("= PLAYER ONE ", "=" * 8)
-            print("Actual Top : ", self.actual_card)
-            if self.player_one_move():
-                print("Player One Wins! 😘")
-                return
-            print("= PLAYER TWO ", "=" * 8)
-            print("Actual Top : ", self.actual_card)
-            if self.player_two_move(True):
-                print("Player Two Wins! 😘")
-                return
-        print("No one got 0 cards")
-        if len(self.player1.cards) < len(self.player2.cards):
-            print("Game over! Player One Wins! ")
-        elif len(self.player2.cards) < len(self.player1.cards):
-            print("Game over! Player Two Wins! ")
-        else:
-            print("Game Over! Draw ")
-        return
+    def play(self, rounds: int = 3):
+        for _ in range(rounds):
+            for player in range(len(self.players)):
+                self.player_turn(player)
 
-    def player_one_move(self) -> bool:
-        print("Player One Turn, Cards : ", len(self.player1.cards))
-        print("Player One Cards : ")
-        self.player1.print_cards()
-        avialable_options = self.player1.check_available(self.actual_card)
-        if avialable_options:
-            print("Cards : ")
-            for key, value in avialable_options.items():
-                print(f"{key} : {value}")
-            option = -1
-            while option == -1:
-                new_option = int(input("Choice : "))
-                new_card = self.player1.cards[new_option]
-                if (
-                    new_card["number"] == self.actual_card["number"]
-                    or new_card["color"] == self.actual_card["color"]
-                ):
-                    self.actual_card = new_card
-                    return self.player1.leave_card(new_option)
-            return False
-        if len(self.player1.cards) < 5:
-            print("No cards available, you take one card")
-            self.player1.take_card()
-            input("Undestand (Enter) :")
-            return False
-        print("No cards available, no available space")
-        return False
+    def check_available(self, player: int) -> list:
+        options = []
+        for card in self.players[player]:
+            card_info = self.cards[card]
+            if (
+                card_info["symbol"] == "ANY"
+                or card_info["symbol"] == "F"
+                or card_info["symbol"] == self.top["symbol"]
+                or card_info["color"] == self.top["color"]
+            ):
+                options.append(card)
+        return options
 
-    def player_two_move(self, auto=False) -> bool:
-        print("Player Two Turn, Cards : ", len(self.player2.cards))
-        print("Player Two Cards : ")
-        self.player2.print_cards()
-        if not auto:
-            avialable_options = self.player2.check_available(self.actual_card)
-            if self.player2.check_available(self.actual_card):
-                print("Cards : ")
-                for key, value in avialable_options.items():
-                    print(f"{key} : {value}")
-                option = -1
-                while option == -1:
-                    new_option = int(input("Choice : "))
-                    new_card = self.player2.cards[new_option]
-                    if (
-                        new_card["number"] == self.actual_card["number"]
-                        or new_card["color"] == self.actual_card["color"]
-                    ):
-                        self.actual_card = new_card
-                        return self.player2.leave_card(new_option)
-                return False
-            if len(self.player2.cards) < 5:
-                print("No cards available, you take one card")
-                self.player2.take_card()
-                input("Undestand (Enter) :")
-                return False
-            print("No cards available, no available space")
-            return False
-        computer_choice = self.player2.automatic_play(self.actual_card)
-        if computer_choice != -1:
-            computer_card = self.player2.cards[computer_choice]
-            print(f"Player two choosed {computer_card}")
-            self.actual_card = computer_card
-            return self.player2.leave_card(computer_choice)
-        print("Player two has no card, he took one")
-        self.player2.take_card()
-        return False
+    def player_turn(self, player: int):
+        print(f"Player {player} cards : ")
+        self.print_cards(self.players[player])
+        player_options = self.check_available(player)
+        if player_options:
+            print("Options : ")
+            self.print_cards(self.check_available(player))
+            player_card = int(input("Choice : "))
+            # handle down correctly
+            return
+        draw_card = choice(self.draw)
+        self.draw.remove(draw_card)
+        self.players[player].append(draw_card)
+        print(f"Player {player} take {self.cards[draw_card]}")
+
+    def create_player(self) -> list:
+        player_cards = sample(self.draw, 7)
+        for card in player_cards:
+            self.draw.remove(card)
+        return player_cards
+
+    def handle_down(self, card, player) -> bool:
+        card_info = self.cards[card]
+        if card_info["symbol"] == "R":
+            self.direction = not self.direction
+        if card_info["symbol"] == "S":
+            pass
+        if card_info["symbol"] == "T":
+            pass
+        if card_info["symbol"] == "F":
+            pass
+        if card_info["symbol"] == "ANY":
+            pass
+        self.top = card_info
+        self.players[player].remove(card)
+        print(f"New Top : {self.top}")
+        return len(self.players[player]) == 0
+
+    def print_cards(self, cards: list) -> None:
+        for card in cards:
+            card_info = self.cards[card]
+            print(f"{card} : {card_info['color']} - {card_info['symbol']} ")
 
 
 if __name__ == "__main__":
-    Game()
+    cards = createDeck()
+    g = Game(cards)
+    g.play(10)
