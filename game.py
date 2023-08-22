@@ -48,8 +48,9 @@ class Game:
             ]:
                 break
         self.draw.remove(first_card)
-        self.stack = [first_card]
+
         self.top = self.cards[first_card]
+
         self.players = []
         self.actual_player = 0
         self.direction = False
