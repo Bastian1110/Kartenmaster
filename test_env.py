@@ -40,24 +40,20 @@ def manual_play():
         print(f"Action: {action}, Reward: {reward}, Info: {info}")
 
 
-def test_action_mask(n_episodes=10, mask=False):
+def test_action_mask(n_episodes=10):
     env = UnoEnv()
 
     for episode in range(n_episodes):
-        obs = env.reset()
+        obs, _ = env.reset()
         done = False
         t = 0
 
         while not done:
-            if mask:
-                valid_actions = [
-                    i for i, valid in enumerate(obs["action_mask"]) if valid == 1
-                ]
-                action = env.np_random.choice(valid_actions)
-            else:
-                action = env.action_space.sample()
+            env.observation_to_human(obs)
+            print(env.valid_mask().index(True))
+            action = env.action_space.sample()
 
-            obs, reward, done, info = env.step(action)
+            obs, reward, done, _, info = env.step(action)
 
             print(
                 f"Episode: {episode + 1}, Time Step: {t}, New Player: {env.actual_player}, Action: {env.action_to_human(action)}, Reward: {reward}, Info: {info}"
@@ -67,4 +63,4 @@ def test_action_mask(n_episodes=10, mask=False):
         print(f"Episode {episode + 1} finished after {t} timesteps")
 
 
-test_random_play()
+manual_play()

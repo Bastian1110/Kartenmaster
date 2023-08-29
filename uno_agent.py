@@ -1,15 +1,20 @@
-import gymnasium as gym
+import numpy as np
+
+from sb3_contrib.common.maskable.policies import MaskableActorCriticPolicy
+from sb3_contrib.common.wrappers import ActionMasker
+from sb3_contrib.ppo_mask import MaskablePPO
+
 from uno import UnoEnv
-from stable_baselines3 import PPO
-from stable_baselines3.common.env_util import make_vec_env
-from time import time
 
-vec_env = make_vec_env(UnoEnv, n_envs=4)
 
-model = PPO("MlpPolicy", vec_env, verbose=1)
+def mask_fn(env) -> np.ndarray:
+    return env.valid_mask(little_help=False)
 
-start = time()
-model.learn(10000000)
-end = time()
-print(f"Total minutes : {(end - start) / 60}")
-model.save(f"ppo_uno")
+
+env = UnoEnv()
+env = ActionMasker(env, mask_fn)
+
+model = MaskablePPO(MaskableActorCriticPolicy, env, verbose=1)
+model.learn(5_000_000)
+
+model.save("ppo_uno")

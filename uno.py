@@ -66,7 +66,7 @@ class UnoEnv(gym.Env):
     def _get_info(self):
         pass
 
-    def reset(self, seed=None):
+    def reset(self, seed=None, options=None):
         # Create a draw cards stack (initially with all the cards)
         self.draw = list(range(len(self.deck)))
 
@@ -228,19 +228,19 @@ class UnoEnv(gym.Env):
                 options.append(card)
         return options
 
-    def valid_mask(self, little_help=True):
+    def valid_mask(self, little_help=False):
         # Return a vector(113) mask with 1 with the valid actions
-        mask = [0] * 113
+        mask = [False] * 113
         # If the last card wasnt a wild card, mask the players hand, else, mask only the possible color
         if not self.top_card["color"] == "ANY":
             possible_cards = self.players[self.actual_player]
             if little_help:
                 possible_cards = self.get_valid_cards()
             for card in possible_cards:
-                mask[card] = 1
-            mask[-1] = 1
+                mask[card] = True
+            mask[-1] = True
         else:
-            mask[-5:-1] = [1, 1, 1, 1]
+            mask[-5:-1] = [True, True, True, True]
         return mask
 
     def nearest_uno(self):
@@ -263,7 +263,7 @@ class UnoEnv(gym.Env):
 
     def observation_to_human(self, obs):
         print(f"Actual Player : {self.actual_player}")
-        action_mask = self.valid_mask()
+        action_mask = self.valid_mask(little_help=False)
         if action_mask[-2] == 1:
             for i in range(113):
                 if action_mask[i] == 1:
