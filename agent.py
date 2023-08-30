@@ -6,15 +6,23 @@ from sb3_contrib.ppo_mask import MaskablePPO
 
 from uno import UnoEnv
 
+from time import time
+
 
 def mask_fn(env) -> np.ndarray:
-    return env.valid_mask(little_help=False)
+    return env.valid_mask(little_help=True)
 
 
+print("Training new UNO agent")
+print("Loading environment")
 env = UnoEnv()
 env = ActionMasker(env, mask_fn)
 
+print("Training agent")
+start = time()
 model = MaskablePPO(MaskableActorCriticPolicy, env, verbose=1)
-model.learn(5_000_000)
+model.learn(1_000_000)
+end = time()
 
-model.save("ppo_uno")
+model.save("./models/ppo_uno_help")
+print(f"Agent trained in {(end - start) / 60} minutes")

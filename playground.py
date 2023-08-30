@@ -1,6 +1,13 @@
+"""
+Little playground to test a trained UNO agent
+By : Sebastian Mora (@Bastian1110)
+"""
+
 from uno import UnoEnv
 from sb3_contrib.ppo_mask import MaskablePPO
 import numpy as np
+
+MODEL = "./models/ppo_uno_help"
 
 
 def mask_fn(env) -> np.ndarray:
@@ -9,14 +16,16 @@ def mask_fn(env) -> np.ndarray:
 
 def test_trained_agent():
     env = UnoEnv()
-    model = MaskablePPO.load("ppo_uno")  # Load the trained model
+    model = MaskablePPO.load(MODEL)  # Load the trained model
 
     obs, _ = env.reset()
     done = False
     total_reward = 0
 
     while not done:
-        action, _ = model.predict(obs)  # Predict the action using the model
+        action, _ = model.predict(
+            obs, action_masks=mask_fn(env)
+        )  # Predict the action using the model
         obs, reward, done, _trash, info = env.step(action)
         total_reward += reward
 
@@ -30,7 +39,7 @@ def test_trained_agent():
 
 def play_with_agent():
     env = UnoEnv(n_players=2)
-    model = MaskablePPO.load("ppo_uno")  # Load the trained model
+    model = MaskablePPO.load(MODEL)  # Load the trained model
 
     obs, _ = env.reset()
     done = False
@@ -45,7 +54,6 @@ def play_with_agent():
             obs, reward, done, _trash, info = env.step(action)
             total_reward += reward
 
-            # Optional: Print some information for debugging
             print(
                 f"Action: {action}, Reward: {reward}, Total Reward: {total_reward}, Info: {info}"
             )

@@ -105,7 +105,7 @@ class UnoEnv(gym.Env):
 
     def step(self, action):
         truncated = False  # WTF Stable baselines3 ?
-        validation_mask = self.valid_mask()
+        validation_mask = self.valid_mask(little_help=True)
         if validation_mask[action] == 0:
             self.last_player = self.actual_player
             self.actual_player = self.get_next_player(self.actual_player)
