@@ -26,10 +26,8 @@ def test_trained_agent():
         action, _ = model.predict(
             obs, action_masks=mask_fn(env)
         )  # Predict the action using the model
-        obs, reward, done, _trash, info = env.step(action)
+        obs, reward, done, _truncated, info = env.step(action)
         total_reward += reward
-
-        # Optional: Print some information for debugging
         print(
             f"Action: {action}, Reward: {reward}, Total Reward: {total_reward}, Info: {info}"
         )
