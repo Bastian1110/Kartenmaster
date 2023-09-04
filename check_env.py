@@ -6,6 +6,7 @@ By Sebastian Mora (@bastian1110)
 from uno import UnoEnv
 
 
+# This fuction simulates actions by choosing a random sample over the actionn space
 def test_random_play(n_episodes=10):
     env = UnoEnv()
 
@@ -28,6 +29,7 @@ def test_random_play(n_episodes=10):
         print(f"Episode {episode + 1} finished after {t} timesteps")
 
 
+# Super usefull function that works for debugging UNO functionality
 def manual_play():
     env = UnoEnv()
     obs, _trash = env.reset()
@@ -40,6 +42,7 @@ def manual_play():
         print(f"Action: {action}, Reward: {reward}, Info: {info}")
 
 
+# Function to test the action mask function of the environment
 def test_action_mask(n_episodes=10):
     env = UnoEnv()
 
@@ -50,7 +53,6 @@ def test_action_mask(n_episodes=10):
 
         while not done:
             env.observation_to_human(obs)
-            print(env.valid_mask().index(True))
             action = env.action_space.sample()
 
             obs, reward, done, _, info = env.step(action)

@@ -1,5 +1,5 @@
 """
-Gym environment to model UNO agnets
+Gym environment to train UNO agents
 By Sebastian Mora (@bastian1110)
 """
 
@@ -8,10 +8,11 @@ from gymnasium import spaces
 import numpy as np
 
 # S = skip, R = reverse, T = take two
-COLORS = ["RED", "BLUE", "YELLOW", "GREEN"]
+COLORS = ["red", "blue", "yellow", "green"]
 SYMBOLS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "S", "R", "T"]
 
 
+# Function to create a deck of UNO
 def createDeck() -> list[dict]:
     cards = []
     for color in COLORS:
@@ -104,8 +105,10 @@ class UnoEnv(gym.Env):
         return observation, {}
 
     def step(self, action):
-        truncated = False  # WTF Stable baselines3 ?
+        truncated = False
+        # Get an array that represents what cards the player has, that are valid to put on the top
         validation_mask = self.valid_mask(little_help=True)
+        # Check if the action is invalid (the selected card cant go on top)
         if validation_mask[action] == 0:
             self.last_player = self.actual_player
             self.actual_player = self.get_next_player(self.actual_player)
@@ -115,6 +118,7 @@ class UnoEnv(gym.Env):
             info = {"reason": f"Invalid action {action} chosen!"}
             return observation, reward, done, truncated, info
 
+        # If the las card, was a wild card, let the player select a color
         if self.top_card["color"] == "ANY":
             self.top_card = {"color": COLORS[action - 108], "symbol": "ANY"}
             self.last_player = self.actual_player
@@ -125,6 +129,7 @@ class UnoEnv(gym.Env):
             info = {"reason": f"Color changed to {action} !"}
             return observation, reward, done, truncated, info
 
+        # Handle if the action slected is to draw a card
         if action == 112:
             new_card = self.deal_cards(1)
             self.players[self.actual_player] += new_card
@@ -136,22 +141,28 @@ class UnoEnv(gym.Env):
             info = {"reason": f"Player took a card !"}
             return observation, reward, done, truncated, info
 
+        # If the action is a normal card
         reward, done, info = self.play_card(action)
         observation = self._get_obs()
         return observation, reward, done, truncated, info
 
     def play_card(self, card_id):
+        # Remove the card from the players hand, get de card details
         self.players[self.actual_player].remove(card_id)
         card = self.deck[card_id]
+        # Check if the actual player won
         if len(self.players[self.actual_player]) == 0:
             return 5, True, {"reason": f"Player {self.actual_player} won !"}
+        # Check if the draw stack is empty
         if len(self.draw) == 0:
             return 0.5, True, {"reason": f"Draw stack out of cards"}
             # Calculate the winer and reward it
+        # Put the played card on the top
         self.top_card = card
         self.top_index = card_id
+        # Handle the card
         if card["symbol"] == "ANY":
-            # Do not go to the next player
+            # Do not go to the next player, wait for color selection
             return 0.5, False, {"reason": f"Wild card palyed"}
         if card["symbol"] == "T":
             # Give the next player 2 cards
@@ -163,7 +174,7 @@ class UnoEnv(gym.Env):
             return 0.5, False, {"reason": f"Player {target_player} took 2 cards!"}
         if card["symbol"] == "F":
             # Give the next player 4 cards
-            # Do not go to the next player
+            # Do not go to the next player, wait for color selection
             target_player = self.get_next_player(self.actual_player)
             new_cards = self.deal_cards(4)
             self.players[target_player] += new_cards
@@ -198,12 +209,14 @@ class UnoEnv(gym.Env):
         self.actual_player = self.get_next_player(self.actual_player)
         return 0.6, False, {"reason": f"Normal card played"}
 
+    # Helper function to calculate which is the next player, based on an actual player
     def get_next_player(self, actual):
         if self.direction == 0:
             return (actual + 1) % self.n_players
         else:
             return (actual - 1) % self.n_players
 
+    # Get a random sample of n cards and delete them from the draw stack
     def deal_cards(self, n_cards):
         if len(self.draw) > n_cards:
             selected_cards = self.np_random.choice(
@@ -215,6 +228,7 @@ class UnoEnv(gym.Env):
             self.draw.remove(card)
         return selected_cards
 
+    # Make a list of what cards can a player use (valid moves only)
     def get_valid_cards(self):
         options = []
         for card in self.players[self.actual_player]:
@@ -228,6 +242,7 @@ class UnoEnv(gym.Env):
                 options.append(card)
         return options
 
+    # Create a 113 valid mask depending on the action, can also take into account only valid cards on the actual players hand with the "little_help" parameter
     def valid_mask(self, little_help=False):
         # Return a vector(113) mask with 1 with the valid actions
         mask = [False] * 113
@@ -243,6 +258,7 @@ class UnoEnv(gym.Env):
             mask[-5:-1] = [True, True, True, True]
         return mask
 
+    # Helper function that return which is the nearest player with only one card left (normalized)
     def nearest_uno(self):
         for i in range(self.actual_player, len(self.players)):
             if len(self.players[i]) == 1:
@@ -253,6 +269,7 @@ class UnoEnv(gym.Env):
                 return i / self.n_players
         return -1
 
+    # Function that caonverts an action (from the 113 possible) to human text
     def action_to_human(self, action):
         if action >= 0 and action <= 107:
             return self.deck[action]
@@ -261,6 +278,7 @@ class UnoEnv(gym.Env):
         if action == 112:
             return "Took a card"
 
+    # Function that prints the actual observation in a human-readable way
     def observation_to_human(self, obs):
         print(f"Actual Player : {self.actual_player}")
         action_mask = self.valid_mask(little_help=False)
@@ -269,7 +287,6 @@ class UnoEnv(gym.Env):
                 if action_mask[i] == 1:
                     print(f"{i} : {COLORS[i- 108]}")
             top = obs[108:215].index(1)
-            print(f"Top Card : {self.deck[top]['color']} - {self.deck[top]['symbol']}")
             print(f"Top Card (Env): {self.top_card}")
             return
         for i in range(108):
@@ -281,6 +298,23 @@ class UnoEnv(gym.Env):
         top = obs[108:215].index(1)
         print(f"Top Card (Obs): {self.deck[top]['color']} - {self.deck[top]['symbol']}")
         print(f"Top Card (Env): {self.top_card}")
+
+    def jsonify_game_state(self):
+        cards = []
+
+        for card in self.players[self.actual_player]:
+            card_data = self.deck[card]
+            card_data["id"] = card
+            cards.append(card_data)
+
+        top_card = dict(self.top_card)
+        top_card["id"] = int(self.top_index)
+
+        return {
+            "player": self.actual_player,
+            "cards": cards,
+            "top": top_card,
+        }
 
     def render(self):
         pass
