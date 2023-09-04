@@ -1,32 +1,34 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import Card from "$lib/components/Card.svelte";
   import Player from "$lib/components/Player.svelte";
 
-  let playerCards = [
-    { color: "red", number: "6", id: 1 },
-    { color: "yellow", number: "1", id: 2 },
-    { color: "green", number: "9", id: 3 },
-    { color: "blue", number: "+2", id: 6 },
-  ];
-
-  function changeCards() {
-    playerCards = [
-      { color: "blue", number: "7", id: 10 },
-      { color: "green", number: "2", id: 11 },
-      { color: "red", number: "4", id: 12 },
-      { color: "yellow", number: "+4", id: 13 },
-      { color: "blue", number: "3", id: 14 },
-      { color: "red", number: "3", id: 15 },
-    ];
-  }
-
   type CardType = {
     color: string;
-    number: string;
+    symbol: string;
     id: number;
   };
 
-  let destinationCard: CardType = { color: "red", number: "4", id: 0 };
+  let playerCards: CardType[] = [];
+  let destinationCard: CardType = { color: "", symbol: "", id: -1 };
+  let actualPlayer: number;
+
+  onMount(async () => {
+    try {
+      let response = await fetch("http://localhost:8082/reset");
+      if (response.ok) {
+        response = await fetch("http://localhost:8082/game-state");
+        if (response.ok) {
+          const data = await response.json();
+          playerCards = data.cards;
+          destinationCard = data.top;
+          actualPlayer = data.player;
+        }
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  });
 
   function setDestinationCard(card: CardType) {
     destinationCard = card;
@@ -73,13 +75,13 @@
     <div class="row-start-2 col-span-3 flex justify-center items-start gap-6">
       <Card
         color={destinationCard.color}
-        number={destinationCard.number}
+        number={destinationCard.symbol}
         cardType="destination-card"
       />
       <Card
         isBack={true}
         cardType="deck-card"
-        on:action={() => getCard({ color: "blue", number: "8", id: counter })}
+        on:action={() => getCard({ color: "blue", symbol: "8", id: counter })}
       />
     </div>
     <div
@@ -89,3 +91,24 @@
     </div>
   </div>
 </main>
+
+<div class="overlay grid grid-cols-6 grid-rows-6">
+  <div
+    class="col-span-2 col-start-3 row-start-4 text-center flex justify-center items-center font-bold text-2xl"
+  >
+    Player : 0
+  </div>
+</div>
+
+<style>
+  /* Style for the overlay container */
+  .overlay {
+    position: fixed; /* Use 'absolute' if you want it relative to a parent container */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -999; /* Adjust the z-index to make sure it's on top of other content */
+    pointer-events: none; /* Allow clicks and interactions to pass through */
+  }
+</style>
