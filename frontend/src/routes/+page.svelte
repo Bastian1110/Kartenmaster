@@ -1,23 +1,4 @@
 <script lang="ts">
-  /**
-   *       <ToggleConfetti toggleOnce relative={false}>
-        <button slot="label">Fullscreen</button>
-
-        <div
-          style="position: fixed; top: -50px; left: 0; height: 100vh; width: 100vw; display: flex; justify-content: center; overflow: hidden;"
-        >
-          <Confetti
-            x={[-5, 5]}
-            y={[0, 0.1]}
-            delay={[0, 1500]}
-            duration={2000}
-            amount={1000}
-            fallDistance="70vh"
-            size={30}
-          />
-        </div>
-      </ToggleConfetti>
-  */
   import { onMount } from "svelte";
   import { Confetti } from "svelte-confetti";
   import { Card, Player } from "$lib/components";
