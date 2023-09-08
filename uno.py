@@ -108,6 +108,7 @@ class UnoEnv(gym.Env):
         truncated = False
         # Get an array that represents what cards the player has, that are valid to put on the top
         validation_mask = self.valid_mask(little_help=True)
+        played_card = self.deck[action] if action < 108 else {}
         # Check if the action is invalid (the selected card cant go on top)
         if validation_mask[action] == 0:
             self.last_player = self.actual_player
@@ -115,7 +116,11 @@ class UnoEnv(gym.Env):
             observation = self._get_obs()
             reward = -5
             done = len(self.draw) == 0
-            info = {"reason": f"Invalid action {action} chosen!"}
+            info = {
+                "valid_action": False,
+                "card": played_card,
+                "message": f"invalid action {action}",
+            }
             return observation, reward, done, truncated, info
 
         # If the las card, was a wild card, let the player select a color
@@ -126,36 +131,55 @@ class UnoEnv(gym.Env):
             observation = self._get_obs()
             reward = 0.5
             done = len(self.draw) == 0
-            info = {"reason": f"Color changed to {action} !"}
+            info = {
+                "valid_action": True,
+                "card": played_card,
+                "message": f"color changed to {action}",
+            }
             return observation, reward, done, truncated, info
 
         # Handle if the action slected is to draw a card
         if action == 112:
             new_card = self.deal_cards(1)
+            new_card_info = self.deck[new_card[0]] if new_card else {}
             self.players[self.actual_player] += new_card
             self.last_player = self.actual_player
             self.actual_player = self.get_next_player(self.actual_player)
             observation = self._get_obs()
             reward = -1
             done = len(self.draw) == 0
-            info = {"reason": f"Player took a card !"}
+            info = {
+                "valid_action": True,
+                "card": new_card_info,
+                "message": f"player took a card {action}",
+            }
             return observation, reward, done, truncated, info
 
         # If the action is a normal card
-        reward, done, info = self.play_card(action)
+        reward, done, info = self.play_card(action, played_card)
         observation = self._get_obs()
         return observation, reward, done, truncated, info
 
-    def play_card(self, card_id):
+    def play_card(self, card_id, card_info):
         # Remove the card from the players hand, get de card details
         self.players[self.actual_player].remove(card_id)
         card = self.deck[card_id]
         # Check if the actual player won
         if len(self.players[self.actual_player]) == 0:
-            return 5, True, {"reason": f"Player {self.actual_player} won !"}
+            info = {
+                "valid_action": True,
+                "card": card_info,
+                "message": f"player won!",
+            }
+            return 5, True, info
         # Check if the draw stack is empty
         if len(self.draw) == 0:
-            return 0.5, True, {"reason": f"Draw stack out of cards"}
+            info = {
+                "valid_action": True,
+                "card": card_info,
+                "message": f"Draw stack out of cards",
+            }
+            return 0.5, True, info
             # Calculate the winer and reward it
         # Put the played card on the top
         self.top_card = card
@@ -163,7 +187,12 @@ class UnoEnv(gym.Env):
         # Handle the card
         if card["symbol"] == "ANY":
             # Do not go to the next player, wait for color selection
-            return 0.5, False, {"reason": f"Wild card palyed"}
+            info = {
+                "valid_action": True,
+                "card": card_info,
+                "message": f"wild card palyed",
+            }
+            return 0.5, False, info
         if card["symbol"] == "T":
             # Give the next player 2 cards
             target_player = self.get_next_player(self.actual_player)
@@ -171,43 +200,65 @@ class UnoEnv(gym.Env):
             self.players[target_player] += new_cards
             self.last_player = self.actual_player
             self.actual_player = self.get_next_player(self.actual_player)
-            return 0.5, False, {"reason": f"Player {target_player} took 2 cards!"}
+            info = {
+                "valid_action": True,
+                "card": card_info,
+                "message": f"Player {target_player} took 2 cards!",
+            }
+            return 0.5, False, info
         if card["symbol"] == "F":
             # Give the next player 4 cards
             # Do not go to the next player, wait for color selection
             target_player = self.get_next_player(self.actual_player)
             new_cards = self.deal_cards(4)
             self.players[target_player] += new_cards
-            return 0.5, False, {"reason": f"Player {target_player} took 4 cards!"}
+            info = {
+                "valid_action": True,
+                "card": card_info,
+                "message": f"Player {target_player} took 4 cards!",
+            }
+            return 0.5, False, info
         if card["symbol"] == "S":
             # Skip the next player
             self.last_player = self.actual_player
             original_next_player = self.get_next_player(self.actual_player)
             new_next_player = self.get_next_player(original_next_player)
             self.actual_player = new_next_player
-            return 0.5, False, {"reason": f"{original_next_player} was skipped!"}
+            info = {
+                "valid_action": True,
+                "card": card_info,
+                "message": f"{original_next_player} was skipped!",
+            }
+            return 0.5, False, info
         if card["symbol"] == "R":
             if self.direction == 0:
                 self.direction = 1
                 self.last_player = self.actual_player
                 self.actual_player = self.get_next_player(self.actual_player)
-                return (
-                    0.5,
-                    False,
-                    {"reason": f"The game changed direction {self.direction}"},
-                )
+                info = {
+                    "valid_action": True,
+                    "card": card_info,
+                    "message": f"The game changed direction {self.direction}",
+                }
+                return (0.5, False, info)
             if self.direction == 1:
                 self.direction = 0
                 self.last_player = self.actual_player
                 self.actual_player = self.get_next_player(self.actual_player)
-                return (
-                    0.5,
-                    False,
-                    {"reason": f"The game changed direction {self.direction}"},
-                )
+                info = {
+                    "valid_action": True,
+                    "card": card_info,
+                    "message": f"The game changed direction {self.direction}",
+                }
+                return (0.5, False, info)
         self.last_player = self.actual_player
         self.actual_player = self.get_next_player(self.actual_player)
-        return 0.6, False, {"reason": f"Normal card played"}
+        info = {
+            "valid_action": True,
+            "card": card_info,
+            "message": f"Normal card played",
+        }
+        return 0.6, False, info
 
     # Helper function to calculate which is the next player, based on an actual player
     def get_next_player(self, actual):

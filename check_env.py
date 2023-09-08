@@ -4,6 +4,7 @@ By Sebastian Mora (@bastian1110)
 """
 
 from uno import UnoEnv
+from random import choice
 
 
 # This fuction simulates actions by choosing a random sample over the actionn space
@@ -16,9 +17,10 @@ def test_random_play(n_episodes=10):
         t = 0
 
         while not done:
-            # Take a random action from the action space
-            action = env.action_space.sample()
-            obs, reward, done, info = env.step(action)
+            valid_mask = env.valid_mask()
+            possible_actions = [i for i in range(len(valid_mask)) if valid_mask[i]]
+            action = choice(possible_actions)
+            obs, reward, done, _truncated, info = env.step(action)
 
             # Print out the results for debugging
             print(
@@ -65,4 +67,4 @@ def test_action_mask(n_episodes=10):
         print(f"Episode {episode + 1} finished after {t} timesteps")
 
 
-manual_play()
+test_random_play()
