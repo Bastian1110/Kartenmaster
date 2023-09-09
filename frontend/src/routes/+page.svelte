@@ -26,7 +26,10 @@
 
   const updateGameState = async () => {
     try {
-      const response = await fetch("http://localhost:8082/game-state");
+      const response = await fetch("http://localhost:8082/game-state", {
+        method: "GET",
+        credentials: "include", // this is the important part
+      });
       const data = await response.json();
       playerCards = data.cards;
       top = data.top;
@@ -40,9 +43,28 @@
     }
   };
 
+  const createEnv = async () => {
+    try {
+      let response = await fetch("http://localhost:8082/start-game", {
+        method: "GET",
+        credentials: "include", // this is the important part
+      });
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data);
+        await resetGame();
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   const resetGame = async () => {
     try {
-      let response = await fetch("http://localhost:8082/reset");
+      let response = await fetch("http://localhost:8082/reset", {
+        method: "GET",
+        credentials: "include", // this is the important part
+      });
       if (response.ok) {
         await updateGameState();
       }
@@ -51,12 +73,15 @@
     }
   };
 
-  onMount(() => resetGame());
+  onMount(async () => {
+    await createEnv();
+  });
 
   const handleAction = async (action: number) => {
     try {
       let response = await fetch("http://localhost:8082/make-action", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
