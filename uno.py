@@ -5,7 +5,7 @@ By Sebastian Mora (@bastian1110)
 
 import gymnasium as gym
 from gymnasium import spaces
-import numpy as np
+from random import shuffle
 
 # S = skip, R = reverse, T = take two
 COLORS = ["red", "blue", "yellow", "green"]
@@ -70,6 +70,7 @@ class UnoEnv(gym.Env):
     def reset(self, seed=None, options=None):
         # Create a draw cards stack (initially with all the cards)
         self.draw = list(range(len(self.deck)))
+        shuffle(self.draw)
 
         # Take out a card to be the top card
         self.top_index = None

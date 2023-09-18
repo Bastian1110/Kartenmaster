@@ -1,5 +1,7 @@
 # Kartenmaster: The Ultimate UNO Player
 
+![Uno Car](./images/cat-uno.png "Uno Cat!")
+
 ## Overview
 
 Kartenmaster aims to create the perfect UNO player using Reinforcement Learning. Born out of a project at SIT in Tokyo, our team is dedicated to building a robot that can outplay any human at UNO.

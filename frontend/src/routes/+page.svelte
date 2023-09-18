@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { Confetti } from "svelte-confetti";
   import { Card, Player } from "$lib/components";
+  import Cookies from "js-cookie";
 
   const numberToColor: { [key: number]: string } = {
     108: "red",
@@ -22,13 +23,13 @@
 
   let playerCards: CardType[] = [];
   let top: CardType = { color: "", symbol: "", id: -1 };
-  let actualPlayer: number;
+  let actualPlayer: number = 0;
 
   const updateGameState = async () => {
     try {
       const response = await fetch("http://localhost:8082/game-state", {
         method: "GET",
-        credentials: "include", // this is the important part
+        credentials: "include",
       });
       const data = await response.json();
       playerCards = data.cards;
@@ -44,18 +45,23 @@
   };
 
   const createEnv = async () => {
-    try {
-      let response = await fetch("http://localhost:8082/start-game", {
-        method: "GET",
-        credentials: "include", // this is the important part
-      });
-      if (response.ok) {
-        const data = await response.json();
-        console.log(data);
-        await resetGame();
+    console.log(sessionStorage.getItem("game_started") ? "yes" : "no");
+    if (!sessionStorage.getItem("game_started")) {
+      try {
+        let response = await fetch("http://localhost:8082/start-game", {
+          method: "GET",
+          credentials: "include", // this is the important part
+        });
+        if (response.ok) {
+          const data = await response.json();
+          await resetGame();
+          sessionStorage.setItem("game_started", "true");
+        }
+      } catch (err) {
+        console.log(err);
       }
-    } catch (err) {
-      console.log(err);
+    } else {
+      await updateGameState();
     }
   };
 
@@ -145,7 +151,7 @@
       <Card color={top.color} number={top.symbol} cardType="destination-card" />
       <Card
         isBack={true}
-        cardType="deck-card"
+        cardType="deck-card transition-all duration-300 hover:scale-95 active:scale-125"
         on:action={() => handleAction(112)}
       />
     </div>

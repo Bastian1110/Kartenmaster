@@ -20,6 +20,7 @@ def start_game():
     game_id = str(uuid.uuid4())  # generate a unique game ID
     games[game_id] = UnoEnv(n_players=2)  # initialize a new game environment
     session["game_id"] = game_id  # store game ID in session
+    print(len(games))
     return jsonify({"game_id": game_id}), 200
 
 
