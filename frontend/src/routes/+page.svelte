@@ -2,7 +2,6 @@
   import { onMount } from "svelte";
   import { Confetti } from "svelte-confetti";
   import { Card, Player } from "$lib/components";
-  import Cookies from "js-cookie";
 
   const numberToColor: { [key: number]: string } = {
     108: "red",
@@ -24,6 +23,8 @@
   let playerCards: CardType[] = [];
   let top: CardType = { color: "", symbol: "", id: -1 };
   let actualPlayer: number = 0;
+  let robotTurn: boolean = false;
+  let robot: number = 0;
 
   const updateGameState = async () => {
     try {
@@ -35,7 +36,13 @@
       playerCards = data.cards;
       top = data.top;
       actualPlayer = data.player;
-      if (top.color == "ANY") {
+      if (data.player == robot) {
+        robotTurn = true;
+        await handleRobotAction();
+      } else {
+        robotTurn = false;
+      }
+      if (top.color == "ANY" && !robotTurn) {
         chooseColorFlag = true;
       }
       console.log("Game state updated!");
@@ -45,7 +52,6 @@
   };
 
   const createEnv = async () => {
-    console.log(sessionStorage.getItem("game_started") ? "yes" : "no");
     if (!sessionStorage.getItem("game_started")) {
       try {
         let response = await fetch("http://localhost:8082/start-game", {
@@ -72,6 +78,8 @@
         credentials: "include", // this is the important part
       });
       if (response.ok) {
+        const data = await response.json();
+        robot = data.robot;
         await updateGameState();
       }
     } catch (err) {
@@ -109,6 +117,26 @@
     }
   };
 
+  const handleRobotAction = async () => {
+    try {
+      let response = await fetch("http://localhost:8082/get-agent-action", {
+        method: "GET",
+        credentials: "include", // this is the important part
+      });
+      if (response.ok) {
+        const data = await response.json();
+        winner = data.done;
+        if (data.info.card.id) {
+          selectCard(data.info.card.id);
+        } else {
+          updateGameState();
+        }
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   function setTopCard(card: CardType) {
     top = card;
   }
@@ -140,6 +168,50 @@
       await updateGameState();
     }, 500);
   }
+
+  function selectCard(cardId: number) {
+    console.log("Select Card : ", cardId);
+    const card = playerCards.find((c) => c.id === cardId);
+    console.log("Paso el card");
+    if (!card) return;
+    console.log("Paso el card");
+
+    const cardElement = document.querySelector(
+      `[data-card-id="${cardId}"]`
+    ) as HTMLElement;
+    if (!cardElement) return;
+    console.log("Paso el cardElement");
+
+    // Get the destination element
+    const destination = document.querySelector(
+      ".destination-card"
+    ) as HTMLElement;
+    console.log("Paso el destination");
+    if (!destination) return;
+
+    // Calculate the position to move to
+    const { top, left } = destination.getBoundingClientRect();
+    const { top: cardTop, left: cardLeft } =
+      cardElement.getBoundingClientRect();
+    const translateX = left - cardLeft;
+    const translateY = top - cardTop;
+
+    // Apply the CSS transition
+    cardElement.style.transition = "transform 0.6s ease-in-out";
+    cardElement.style.transform = `translate(${translateX}px, ${translateY}px)`;
+
+    console.log("Paso el css");
+
+    setTimeout(async () => {
+      const index = playerCards.findIndex((c) => c.id === card.id);
+      if (index !== -1) {
+        playerCards.splice(index, 1);
+        playerCards = [...playerCards]; // Trigger Svelte reactivity
+        setTopCard(card);
+        await updateGameState();
+      }
+    }, 1000);
+  }
 </script>
 
 <main class="grid grid-cols-6 grid-rows-[1fr,auto] w-screen h-screen">
@@ -160,6 +232,7 @@
     >
       <Player
         handleCardSelection={handleAction}
+        reversed={robotTurn}
         {setTopCard}
         cards={playerCards}
       />
