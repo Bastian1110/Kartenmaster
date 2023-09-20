@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { Confetti } from "svelte-confetti";
   import { Card, Player } from "$lib/components";
+  import { tick } from "svelte";
 
   const numberToColor: { [key: number]: string } = {
     108: "red",
@@ -20,6 +21,7 @@
 
   let chooseColorFlag = false;
 
+  let track: string[] = [];
   let playerCards: CardType[] = [];
   let top: CardType = { color: "", symbol: "", id: -1 };
   let actualPlayer: number = 0;
@@ -103,6 +105,9 @@
       });
       let data = await response.json();
       winner = data.done;
+      track = [...track, actualPlayer.toString() + " " + data.info.message];
+      scrollToBottom();
+      console.log(track);
       if (action == 112) {
         getCard(data.info.card);
       } else if (action >= 108 && action <= 111) {
@@ -126,8 +131,16 @@
       if (response.ok) {
         const data = await response.json();
         winner = data.done;
-        if (data.info.card.id) {
-          selectCard(data.info.card.id);
+        track = [...track, actualPlayer.toString() + " " + data.info.message];
+        scrollToBottom();
+        console.log(track);
+        console.log(data);
+        if (data.info.card) {
+          if (data.info.card.id) {
+            selectCard(data.info.card.id);
+          } else {
+            getCard(data.info.card);
+          }
         } else {
           updateGameState();
         }
@@ -212,6 +225,16 @@
       }
     }, 1000);
   }
+
+  let scrollContainer: HTMLElement;
+  async function scrollToBottom() {
+    // Wait for the DOM to update
+    await tick();
+
+    if (scrollContainer) {
+      scrollContainer.scrollTop = scrollContainer.scrollHeight;
+    }
+  }
 </script>
 
 <main class="grid grid-cols-6 grid-rows-[1fr,auto] w-screen h-screen">
@@ -219,7 +242,17 @@
     <div class="row-start-1 col-span-3 h-full">
       <h1 class="p-6 text-6xl font-bold">Kartenmaster</h1>
     </div>
-    <div class="row-start-2 col-span-3 flex justify-center items-start gap-6">
+    <div
+      bind:this={scrollContainer}
+      class="row-start-2 col-span-1 col-start-1 gap-6 h-[12rem] max-h-full overflow-y-scroll"
+    >
+      {#each track as s}
+        <span class="block bg-slate-50 p-2 rounded-lg m-2">{s}</span>
+      {/each}
+    </div>
+    <div
+      class="row-start-2 col-span-1 col-start-2 flex justify-center items-start gap-6"
+    >
       <Card color={top.color} number={top.symbol} cardType="destination-card" />
       <Card
         isBack={true}
