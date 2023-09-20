@@ -228,7 +228,6 @@
 
   let scrollContainer: HTMLElement;
   async function scrollToBottom() {
-    // Wait for the DOM to update
     await tick();
 
     if (scrollContainer) {
