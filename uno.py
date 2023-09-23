@@ -119,6 +119,7 @@ class UnoEnv(gym.Env):
             done = len(self.draw) == 0
             info = {
                 "valid_action": False,
+                "type": "invalid",
                 "card": played_card,
                 "message": f"invalid action {action}",
             }
@@ -134,6 +135,7 @@ class UnoEnv(gym.Env):
             done = len(self.draw) == 0
             info = {
                 "valid_action": True,
+                "type": "color",
                 "card": played_card,
                 "message": f"color changed to {action}",
             }
@@ -146,12 +148,15 @@ class UnoEnv(gym.Env):
             self.players[self.actual_player] += new_card
             self.last_player = self.actual_player
             self.actual_player = self.get_next_player(self.actual_player)
+            new_card_data = new_card_info
+            new_card_info["id"] = new_card[0]
             observation = self._get_obs()
             reward = -1
             done = len(self.draw) == 0
             info = {
                 "valid_action": True,
-                "card": new_card_info,
+                "type": "draw",
+                "card": new_card_data,
                 "message": f"player took a card {action}",
             }
             return observation, reward, done, truncated, info
@@ -169,6 +174,7 @@ class UnoEnv(gym.Env):
         if len(self.players[self.actual_player]) == 0:
             info = {
                 "valid_action": True,
+                "type": "normal",
                 "card": card_info,
                 "message": f"player won!",
             }
@@ -177,6 +183,7 @@ class UnoEnv(gym.Env):
         if len(self.draw) == 0:
             info = {
                 "valid_action": True,
+                "type": "normal",
                 "card": card_info,
                 "message": f"Draw stack out of cards",
             }
@@ -190,6 +197,7 @@ class UnoEnv(gym.Env):
             # Do not go to the next player, wait for color selection
             info = {
                 "valid_action": True,
+                "type": "wild",
                 "card": card_info,
                 "message": f"wild card palyed",
             }
@@ -203,6 +211,7 @@ class UnoEnv(gym.Env):
             self.actual_player = self.get_next_player(self.actual_player)
             info = {
                 "valid_action": True,
+                "type": "normal",
                 "card": card_info,
                 "message": f"Player {target_player} took 2 cards!",
             }
@@ -215,6 +224,7 @@ class UnoEnv(gym.Env):
             self.players[target_player] += new_cards
             info = {
                 "valid_action": True,
+                "type": "wild",
                 "card": card_info,
                 "message": f"Player {target_player} took 4 cards!",
             }
@@ -227,6 +237,7 @@ class UnoEnv(gym.Env):
             self.actual_player = new_next_player
             info = {
                 "valid_action": True,
+                "type": "normal",
                 "card": card_info,
                 "message": f"{original_next_player} was skipped!",
             }
@@ -238,6 +249,7 @@ class UnoEnv(gym.Env):
                 self.actual_player = self.get_next_player(self.actual_player)
                 info = {
                     "valid_action": True,
+                    "type": "normal",
                     "card": card_info,
                     "message": f"The game changed direction {self.direction}",
                 }
@@ -248,6 +260,7 @@ class UnoEnv(gym.Env):
                 self.actual_player = self.get_next_player(self.actual_player)
                 info = {
                     "valid_action": True,
+                    "type": "normal",
                     "card": card_info,
                     "message": f"The game changed direction {self.direction}",
                 }
@@ -256,6 +269,7 @@ class UnoEnv(gym.Env):
         self.actual_player = self.get_next_player(self.actual_player)
         info = {
             "valid_action": True,
+            "type": "normal",
             "card": card_info,
             "message": f"Normal card played",
         }
@@ -351,20 +365,24 @@ class UnoEnv(gym.Env):
         print(f"Top Card (Obs): {self.deck[top]['color']} - {self.deck[top]['symbol']}")
         print(f"Top Card (Env): {self.top_card}")
 
-    def jsonify_game_state(self):
+    def jsonify_player_cards(self, player):
         cards = []
-
-        for card in self.players[self.actual_player]:
+        for card in self.players[player]:
             card_data = self.deck[card]
             card_data["id"] = card
             cards.append(card_data)
+        return cards
 
+    def jsonify_game_state(self):
         top_card = dict(self.top_card)
         top_card["id"] = int(self.top_index)
+        players = {}
+        for i in range(len(self.players)):
+            players[i] = self.jsonify_player_cards(i)
 
         return {
-            "player": self.actual_player,
-            "cards": cards,
+            "players": players,
+            "actual": self.actual_player,
             "top": top_card,
         }
 

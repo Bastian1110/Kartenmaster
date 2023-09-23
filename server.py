@@ -35,8 +35,7 @@ def reset():
     game_id = session.get("game_id")
     if game_id and game_id in games:
         games[game_id].reset()
-        robot = choice(range(games[game_id].n_players))
-        return jsonify({"message": "Environment reseted", "robot": robot}), 200
+        return jsonify({"message": "Environment reseted"}), 200
     return jsonify({"error": "Game not found"}), 400
 
 

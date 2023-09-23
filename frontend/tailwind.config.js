@@ -5,10 +5,4 @@ export default {
     extend: {},
   },
   plugins: [],
-  purge: {
-    // ...
-    options: {
-      safelist: ["bg-red-500", "bg-green-500", "bg-blue-500", "bg-yellow-500"], // Add other dynamic classes here
-    },
-  },
 };
