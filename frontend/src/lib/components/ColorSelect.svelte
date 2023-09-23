@@ -1,4 +1,5 @@
 <script lang="ts">
+  export let isClickable: boolean;
   export let show: boolean = false;
   export let handleSelection = (color: number) => {};
 </script>
@@ -12,7 +13,9 @@
     class="z-[100] fixed left-0 top-0 grid h-full w-full grid-cols-12 bg-slate-900 bg-opacity-50"
   >
     <div
-      class="z-[1000] col-span-6 col-start-4 my-auto rounded-2xl bg-slate-900 text-center shadow-lg"
+      class="z-[1000] col-span-6 col-start-4 my-auto rounded-2xl bg-slate-900 text-center shadow-lg {isClickable
+        ? ''
+        : 'pointer-events-none'}"
     >
       <h1 class="m-8 mb-0 text-4xl font-bold text-white">Choose a color!</h1>
       <div class="flex justify-around items-center mt-8 mb-8">

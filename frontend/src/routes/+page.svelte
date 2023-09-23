@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Card, Player, ColorSelect } from "$lib/components";
+  import { Confetti } from "svelte-confetti";
   import { onMount } from "svelte";
 
   type CardInfo = {
@@ -16,26 +17,9 @@
   let playersCards: PlayersDict = {};
   let actualPlayer: number = 0;
   let topCard: CardInfo = { id: -1, color: "blue", symbol: "1" };
-  let humanColorSelection: boolean = false;
-
-  // Test State for the
-  let colorFlag = false;
-  let change = false;
-  let counter = 0;
-  let playerTest = 0;
-  function addTestCard(playerId: number) {
-    const colors = ["red", "blue", "yellow", "green"];
-    const randomIndex = Math.floor(Math.random() * colors.length);
-    const randomColor = colors[randomIndex];
-    const randomNumber = Math.floor(Math.random() * 9);
-    const newCard: CardInfo = {
-      id: counter,
-      color: randomColor,
-      symbol: randomNumber.toString(),
-    };
-    playersCards[playerId] = [...playersCards[playerId], newCard];
-    counter++;
-  }
+  let colorSelection: boolean = false;
+  let isActualHuman: boolean = true;
+  let gameEnded = false;
 
   // Animation function for moves
 
@@ -156,8 +140,8 @@
       if (actualPlayer == 1) {
         await handleRobotAction();
       }
-      if (topCard.color == "ANY" && actualPlayer != 1) {
-        humanColorSelection = true;
+      if (topCard.color == "ANY") {
+        colorSelection = true;
       }
     } catch (err) {
       console.log(err);
@@ -176,6 +160,7 @@
       });
       const data = await response.json();
       console.log("Human Action : ", data);
+      gameEnded = data.done;
       if (response.ok) {
         cardToTop(id, playerHandId, data.info.valid_action, data.info.card);
       }
@@ -196,6 +181,7 @@
       });
       const data = await response.json();
       console.log("Human Draw: ", data);
+      gameEnded = data.done;
       stackTohand(playerHandId, data.info.card);
     } catch (err) {
       console.log(err);
@@ -214,10 +200,11 @@
       });
       const data = await response.json();
       console.log("Human Color : ", data);
+      gameEnded = data.done;
       setTimeout(() => {
         updateGameState();
-        humanColorSelection = false;
-      }, 1000);
+        colorSelection = false;
+      }, 100);
     } catch (err) {
       console.log(err);
     }
@@ -231,6 +218,7 @@
       });
       const data = await response.json();
       console.log("Robot Action: ", data);
+      gameEnded = data.done;
       if (
         data.info.type == "normal" ||
         data.info.type == "invalid" ||
@@ -252,8 +240,9 @@
       }
       if (data.info.type == "color") {
         setTimeout(() => {
+          colorSelection = false;
           updateGameState();
-        }, 500);
+        }, 1000);
       }
     } catch (err) {
       console.log(err);
@@ -269,13 +258,7 @@
   class="grid grid-cols-3 grid-rows-3 w-screen h-screen text-white"
   style="grid-template-columns: 20% 60% 20%;"
 >
-  <div class=" font-bold text-center row-span-3">
-    A <button
-      on:click={() => {
-        colorFlag = !colorFlag;
-      }}>TEst</button
-    >
-  </div>
+  <div class=" font-bold text-center row-span-3">A</div>
   <Player cards={playersCards[1]} playerId={1} {actualPlayer} />
   <div class=" font-bold text-center row-span-3">C</div>
   <div class=" font-bold text-center flex items-center justify-center">
@@ -308,6 +291,23 @@
 </main>
 
 <ColorSelect
-  show={humanColorSelection}
+  show={colorSelection}
   handleSelection={handleHumanColorSelection}
+  isClickable={isActualHuman}
 />
+
+{#if gameEnded}
+  <div
+    style="position: fixed; top: -50px; left: 0; height: 100vh; width: 100vw; display: flex; justify-content: center; overflow: hidden;"
+  >
+    <Confetti
+      x={[-5, 5]}
+      y={[0, 0.1]}
+      delay={[0, 1500]}
+      duration={2000}
+      amount={1000}
+      fallDistance="70vh"
+      size={30}
+    />
+  </div>
+{/if}
