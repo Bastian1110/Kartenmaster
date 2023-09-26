@@ -8,7 +8,6 @@ Kartenmaster aims to create the perfect UNO player using Reinforcement Learning.
 
 ## Table of Contents
 
-- [Overview](#overview)
 - [Technologies](#technologies)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)

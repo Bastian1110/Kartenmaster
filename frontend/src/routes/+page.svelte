@@ -45,6 +45,7 @@
 
     cardElement.style.transition = "transform 1s ease-in-out";
     cardElement.style.transform = `translate(${translateX}px, ${translateY}px)`;
+    cardElement.style.zIndex = "10";
 
     setTimeout(() => {
       if (valid) {
@@ -56,6 +57,7 @@
       } else {
         cardElement.style.transition = "";
         cardElement.style.transform = "";
+        cardElement.style.zIndex = "1";
       }
       updateGameState();
     }, 1000);

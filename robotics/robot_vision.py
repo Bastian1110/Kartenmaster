@@ -6,15 +6,15 @@ from random import choice
 import serial
 from time import sleep
 
-puerto = "/dev/cu.usbmodem1101"
-arduino = serial.Serial("/dev/cu.usbmodem1101", 9600, timeout=1)
+# puerto = "/dev/cu.usbmodem1101"
+# arduino = serial.Serial("/dev/cu.usbmodem1101", 9600, timeout=1)
 
 
 parameters = aruco.DetectorParameters()
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
 
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 Y_AXIS = 200
 X_AXIS = 920
@@ -113,13 +113,13 @@ def main() -> None:
                     if options:
                         robot_card = choice(list(options.keys()))
                         print("Robot juega : ", robot_card)
-                        arduino.write(robot_card.encode())
+                        # arduino.write(robot_card.encode())
                         sleep(5)
                         robot_cards[robot_card] = None
                         # mandar serial al arduino de que carta mover
                     else:
                         print("Robot ya no tiene cartas")
-                        arduino.write("stack".encode())
+                        # arduino.write("stack".encode())
                         sleep(5)
                         # checar si hay espacios dispnibles
                         # mandar serial de agarrar carta del stack
@@ -154,5 +154,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    sleep(3)
     main()

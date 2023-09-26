@@ -6,6 +6,7 @@ By Sebastian Mora (@bastian1110)
 import gymnasium as gym
 from gymnasium import spaces
 from random import shuffle
+import numpy as np
 
 # S = skip, R = reverse, T = take two
 COLORS = ["red", "blue", "yellow", "green"]
@@ -29,12 +30,14 @@ def createDeck() -> list[dict]:
 class UnoEnv(gym.Env):
     metadata = {"render_modes": []}
 
-    def __init__(self, render_mode=None, n_players=3) -> None:
+    def __init__(self, render_mode=None, n_players=2) -> None:
         # Action Space of 108 cards +  4 color choices + 1 draw action = 113 possible actions
         self.action_space = spaces.Discrete(113)
 
-        # Player's hand (108), top card (108), actual color (1 norm), direction (1 norm), last player (1 norm), player with one (1 norm)
-        self.observation_space = spaces.Box(low=0, high=1, shape=(220,), dtype=int)
+        # Player's hand (108), top card (108), color top (5), symbol top (14), game direction (1), uno (1), n cards (1) norm = 238
+        self.observation_space = spaces.Box(
+            low=0, high=1, shape=(238,), dtype=np.float32
+        )
 
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         self.render_mode = render_mode
@@ -44,24 +47,46 @@ class UnoEnv(gym.Env):
         self.n_players = n_players
 
     def _get_obs(self):
+        # Player's hand (108)
         player_hand_counts = [0] * 108
         for card in self.players[self.actual_player]:
             player_hand_counts[card] += 1
 
+        # Top card (108)
         top_card_encode = [0] * 108
         top_card_encode[self.top_index] = 1
+
+        # Color top (5)
+        top_color_encode = [0] * 5
+        try:
+            top_color_encode[COLORS.index(self.top_card["color"])] = 1
+        except:
+            top_color_encode[-1] = 1
+
+        # Symbol top (14)
+        top_symbol_encode = [0] * 14
+        try:
+            top_symbol_encode[SYMBOLS.index(self.top_card["symbol"])] = 1
+        except:
+            if self.top_card["symbol"] == "ANY":
+                top_symbol_encode[-1] = 1
+            else:
+                top_symbol_encode[-2] = 1
+
+        # Palayer with UNO
+        one_card_player = 0 if self.nearest_uno() == -1 else 1
+
+        # Normalized player ammount of cards
+        norm_player_cards = len(self.players[self.actual_player]) / 108
 
         return (
             player_hand_counts
             + top_card_encode
-            + [
-                COLORS.index(self.top_card["color"]) / 4
-                if self.top_card["color"] != "ANY"
-                else -1,
-                self.direction,
-                self.last_player / self.n_players,
-                self.nearest_uno(),
-            ]
+            + top_color_encode
+            + top_symbol_encode
+            + [self.direction]
+            + [one_card_player]
+            + [norm_player_cards]
         )
 
     def _get_info(self):
@@ -149,7 +174,8 @@ class UnoEnv(gym.Env):
             self.last_player = self.actual_player
             self.actual_player = self.get_next_player(self.actual_player)
             new_card_data = new_card_info
-            new_card_info["id"] = new_card[0]
+            if new_card:
+                new_card_data["id"] = new_card[0]
             observation = self._get_obs()
             reward = -1
             done = len(self.draw) == 0
@@ -328,11 +354,11 @@ class UnoEnv(gym.Env):
     def nearest_uno(self):
         for i in range(self.actual_player, len(self.players)):
             if len(self.players[i]) == 1:
-                return i / self.n_players
+                return i
 
         for i in range(self.actual_player - 1, -1, -1):
             if len(self.players[i]) == 1:
-                return i / self.n_players
+                return i
         return -1
 
     # Function that caonverts an action (from the 113 possible) to human text

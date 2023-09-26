@@ -67,4 +67,4 @@ def test_action_mask(n_episodes=10):
         print(f"Episode {episode + 1} finished after {t} timesteps")
 
 
-test_random_play()
+manual_play()
