@@ -23,7 +23,7 @@ env = ActionMasker(env, mask_fn)
 print("Training agent")
 start = time()
 model = MaskablePPO(MaskableActorCriticPolicy, env, verbose=1)
-model.learn(1_000_000)
+model.learn(25_000_000)
 end = time()
 
 model.save("./models/ppo_uno_help")
