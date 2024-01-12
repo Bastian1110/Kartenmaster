@@ -28,11 +28,11 @@
           class="bg-[#f43f5e] rounded-full w-[8rem] h-[8rem] hover:scale-105 hover:border-2 hover:border-[#f1536d] transition-all duration-150"
         />
         <button
-          on:click={() => handleSelection(107)}
+          on:click={() => handleSelection(111)}
           class="bg-[#14b8a6] rounded-full w-[8rem] h-[8rem] hover:scale-105 hover:border-2 hover:border-[#27dfc9] transition-all duration-150"
         />
         <button
-          on:click={() => handleSelection(106)}
+          on:click={() => handleSelection(110)}
           class="bg-[#eab308] rounded-full w-[8rem] h-[8rem] hover:scale-105 hover:border-2 hover:border-[#ead308] transition-all duration-150"
         />
       </div>

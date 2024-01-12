@@ -8,7 +8,7 @@ from gymnasium import spaces
 from random import shuffle
 import numpy as np
 
-# S = skip, R = reverse, T = take two
+# S = skip, R = reverse, T = take two, F = take four
 COLORS = ["red", "blue", "yellow", "green"]
 SYMBOLS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "S", "R", "T"]
 

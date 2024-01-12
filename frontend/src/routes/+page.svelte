@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card, Player, ColorSelect } from "$lib/components";
+  import { Card, Player, ColorSelect, InstructionModal } from "$lib/components";
   import { Confetti } from "svelte-confetti";
   import { onMount } from "svelte";
 
@@ -21,16 +21,44 @@
   let isActualHuman: boolean = true;
   let gameEnded = false;
 
-  // Animation function for moves
+  let username = "";
+  let showInstructionModal = true;
 
+  $: if (gameEnded){
+    handleEndGame()
+    console.log("Game ended")
+  }
+
+  // Function to end game and register game data
+  const handleEndGame = async () => {
+    try {
+      let response = await fetch("http://localhost:8082/end-game", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username: username, datetime : new Date().toUTCString()}),
+      },);
+      if (response.ok) {
+        const data = await response.json();
+        console.log("End Game ", data);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+
+  }
+
+  // Animation function for moves
   const cardToTop = (
     id: number,
     playerHandId: number,
     valid: boolean,
-    newTop: CardInfo
+    newTop: CardInfo,
   ) => {
     const cardElement = document.querySelector(
-      `[data-card-id="${id}"]`
+      `[data-card-id="${id}"]`,
     ) as HTMLElement;
 
     const topElement = document.querySelector(".top-card") as HTMLElement;
@@ -50,7 +78,7 @@
     setTimeout(() => {
       if (valid) {
         playersCards[playerHandId] = playersCards[playerHandId].filter(
-          (card) => card.id !== id
+          (card) => card.id !== id,
         );
         playersCards = { ...playersCards };
         topCard = newTop;
@@ -66,7 +94,7 @@
   const stackTohand = (playerHandId: number, newCard: CardInfo) => {
     const stackElement = document.querySelector(".stack-card") as HTMLElement;
     const playerHandElement = document.querySelector(
-      `#player-${playerHandId}-container`
+      `#player-${playerHandId}-container`,
     ) as HTMLElement;
     const lastCard = playerHandElement.lastElementChild as HTMLElement;
 
@@ -231,7 +259,7 @@
             data.info.card.id,
             1,
             data.info.valid_action,
-            data.info.card
+            data.info.card,
           );
         }, 1000);
       }
@@ -260,9 +288,9 @@
   class="grid grid-cols-3 grid-rows-3 w-screen h-screen text-white"
   style="grid-template-columns: 20% 60% 20%;"
 >
-  <div class=" font-bold text-center row-span-3">A</div>
+  <div class=" font-bold text-center row-span-3 text-transparent">A</div>
   <Player cards={playersCards[1]} playerId={1} {actualPlayer} />
-  <div class=" font-bold text-center row-span-3">C</div>
+  <div class=" font-bold text-center row-span-3 text-transparent">C</div>
   <div class=" font-bold text-center flex items-center justify-center">
     <div class="flex justify-center text-center">
       <Card
@@ -298,6 +326,8 @@
   isClickable={isActualHuman}
 />
 
+<InstructionModal on:submit={(event) => {username = event.detail.value; showInstructionModal = false}} show={showInstructionModal} />
+
 {#if gameEnded}
   <div
     style="position: fixed; top: -50px; left: 0; height: 100vh; width: 100vw; display: flex; justify-content: center; overflow: hidden;"
@@ -306,7 +336,7 @@
       x={[-5, 5]}
       y={[0, 0.1]}
       delay={[0, 1500]}
-      duration={2000}
+      duration={3000}
       amount={1000}
       fallDistance="70vh"
       size={30}
