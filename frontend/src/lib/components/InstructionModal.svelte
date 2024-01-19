@@ -20,10 +20,10 @@
     class="z-[100] fixed left-0 top-0 grid h-full w-full grid-cols-12 bg-slate-900 bg-opacity-50"
   >
     <div
-      class="z-[1000] col-span-8 col-start-3 my-auto rounded-2xl bg-slate-900 text-center shadow-lg"
+      class="z-[1000] col-span-8 col-start-3 my-auto rounded-2xl bg-slate-900 text-center shadow-lg font-mono"
     >
       <div class="flex flex-row">
-        <h1 class="flex-1 m-8 mb-0 text-4xl font-bold text-white text-left">
+        <h1 class="flex-1 m-8 mb-0 text-4xl font-bold  text-white text-left">
           Welcome to KartenMaster !
         </h1>
       </div>
@@ -34,13 +34,8 @@
           Hello! This is Kartenmaster, a Reinforcement Learning agent trying to
           get good at playing UNO, Kartenmaster can't see your cards, or can
           only see the top card and his own cards.
-          <img
-            src={UnoCat}
-            alt="Some alt text"
-            class="w-[60%] h-[60%] mx-auto"
-          />
         </div>
-        <form on:submit|preventDefault={handleSubmit} class="w-full flex flex-col justify-start mt-10">
+        <form on:submit|preventDefault={handleSubmit} class="w-full flex flex-col justify-start">
           <h2 class="font-bold text-2xl my-2">Enter you username!</h2>
           <input
             bind:value={nametag}

@@ -29,7 +29,7 @@
   role="button"
   tabindex="0"
   on:click={onClick}
-  class="{cardType} flip-card relative w-28 h-40 rounded-lg text-white font-bold inline-block mx-2 transition-all duration-200 {isClickable
+  class="{cardType} flip-card relative w-28 h-40 rounded-lg text-white font-bold inline-block mx-2 transition-all duration-200 font-mono {isClickable
     ? 'hover:-translate-y-4 hover:shadow-xl'
     : ''}"
 >
@@ -53,7 +53,7 @@
     <div
       class="flip-card-back rounded-lg bg-slate-800 text-center align-middle"
     >
-      <div class="text-4xl mt-[50%]">UNO</div>
+      <div class="text-6xl mt-[50%]">K</div>
     </div>
   </div>
 </div>

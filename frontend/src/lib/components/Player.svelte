@@ -8,6 +8,7 @@
   };
 
   export let cards: CardInfo[] = [];
+  export let enabledReverseHand : boolean = false;
   export let reverseHand: boolean = true;
   export let onCardClick = (id: number, playerId: number) => {};
   export let playerId: number;
@@ -16,7 +17,7 @@
 
 <div class="border-red-400 flex flex-col justify-center">
   <div class="text-center">
-    <button on:click={() => (reverseHand = !reverseHand)}>
+    <button on:click={() => (reverseHand = enabledReverseHand ? !reverseHand : true)}>
       {#if reverseHand}
         <svg
           class="h-6 w-6 text-slate-600"
