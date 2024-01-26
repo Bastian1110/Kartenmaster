@@ -1,5 +1,11 @@
 <script lang="ts">
-  import { Card, Player, ColorSelect, InstructionModal } from "$lib/components";
+  import {
+    Card,
+    Player,
+    ColorSelect,
+    InstructionModal,
+    InfoScreen,
+  } from "$lib/components";
   import { Confetti } from "svelte-confetti";
   import { onMount } from "svelte";
 
@@ -25,6 +31,7 @@
   let showInstructionModal = true;
   let winner = "";
   let triggerConfetti = false;
+  let actualInfo = "";
 
   $: if (virtualGameEnded) {
     setTimeout(() => {
@@ -36,8 +43,8 @@
         setTimeout(() => {
           triggerConfetti = false;
         }, 1000);
-      }, 1100);
-    }, 500);
+      }, 1000);
+    }, 100);
   }
 
   // Function to end game and register game data
@@ -165,6 +172,7 @@
         console.log("Reset ", data);
         gameEnded = false;
         virtualGameEnded = false;
+        actualInfo = "";
         await updateGameState();
       }
     } catch (err) {
@@ -206,6 +214,7 @@
       const data = await response.json();
       console.log("Human Action : ", data);
       virtualGameEnded = data.done;
+      actualInfo = data.info.message;
       if (virtualGameEnded) {
         winner = username;
       }
@@ -230,6 +239,7 @@
       const data = await response.json();
       console.log("Human Draw: ", data);
       virtualGameEnded = data.done;
+      actualInfo = data.info.message;
       if (virtualGameEnded) {
         winner = actualPlayer == 0 ? "Kartenmaster" : username;
       }
@@ -252,6 +262,7 @@
       const data = await response.json();
       console.log("Human Color : ", data);
       virtualGameEnded = data.done;
+      actualInfo = data.info.message;
       if (virtualGameEnded) {
         winner = actualPlayer == 0 ? "Kartenmaster" : username;
       }
@@ -273,6 +284,7 @@
       const data = await response.json();
       console.log("Robot Action: ", data);
       virtualGameEnded = data.done;
+      actualInfo = data.info.message;
       if (virtualGameEnded) {
         winner = "Kartenmaster";
       }
@@ -316,7 +328,7 @@
     class="grid grid-cols-3 grid-rows-3 w-screen h-screen text-white"
     style="grid-template-columns: 20% 60% 20%; grid-template-rows: 20% 60% 20%;"
   >
-    <div class="col-start-2 row-start-2 bg-slate-900 rounded-xl">
+    <div class="col-start-2 row-start-2 bg-slate-900 rounded-xl flex items-center flex-col justify-center align-middle">
       <h1 class="text-white text-8xl font-bold m-6">
         {winner} Won!
       </h1>
@@ -354,7 +366,7 @@
     class="grid grid-cols-3 grid-rows-3 w-screen h-screen text-white"
     style="grid-template-columns: 20% 60% 20%;"
   >
-    <div class=" font-bold text-center row-span-3 text-transparent">A</div>
+    <div class="font-bold text-center row-span-3 text-transparent">A</div>
     <Player
       cards={playersCards[1]}
       playerId={1}
@@ -392,6 +404,14 @@
     />
   </main>
 {/if}
+<div class="absolute bottom-0 right-5 text-white font-mono text-lg">
+  Kartenmaster by : <a
+    class="underline"
+    target="_blank"
+    rel="noopener noreferrer"
+    href="https://github.com/Bastian1110/Kartenmaster">@Batian1110</a
+  >
+</div>
 
 <ColorSelect
   show={colorSelection}
@@ -407,6 +427,8 @@
   show={showInstructionModal}
 />
 
+<InfoScreen info={actualInfo} />
+
 {#if triggerConfetti}
   <div
     style="position: fixed; top: -50px; left: 0; height: 100vh; width: 100vw; display: flex; justify-content: center; overflow: hidden;"
@@ -416,8 +438,8 @@
       y={[0, 0.1]}
       delay={[0, 1500]}
       duration={3000}
-      amount={1000}
-      fallDistance="70vh"
+      amount={1500}
+      fallDistance="100vh"
       size={30}
     />
   </div>
