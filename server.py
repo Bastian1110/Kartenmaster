@@ -3,12 +3,14 @@ from flask_cors import CORS
 from uno import UnoEnv
 from sb3_contrib.ppo_mask import MaskablePPO
 from pymongo import MongoClient
+from bson import ObjectId
 from datetime import datetime
 from threading import Thread
 from time import sleep
 import uuid
 
 MODEL = "./models/ppo_uno_help"
+MODEL_ID = "KartenMasterPPO&HelpV1.0"
 
 app = Flask("UNO Playground")
 CORS(app, supports_credentials=True)
@@ -110,9 +112,26 @@ def end_game():
         data["winner"] = "Kartenmaster" if  games[game_id][0].actual_player == 1 else data["username"]
         data["players"] = games[game_id][0].n_players
         data["draw"] = len(games[game_id][0].draw)
-        game_collection.insert_one(data)
+        data["model"] = MODEL_ID
+        result = game_collection.insert_one(data)
         update_last_activity(game_id)
-        return jsonify({"info": "Game saved!", "done": True}), 200
+        return jsonify({"info": "Game saved!", "done": True, "record_id" : str(result.inserted_id)}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    
+@app.route("/rate-model", methods=["POST"])
+def rate_model():
+    game_id = session.get("game_id")
+    if not (game_id and game_id in games):
+        return jsonify({"error": "Game not found"}), 400
+    try:
+        data = request.get_json()
+        rate = data["rate"]
+        idx = data["record_id"]
+        game_collection.update_one({"_id": ObjectId(idx)}, {"$set": {"rate" : rate}})
+        update_last_activity(game_id)
+        return jsonify({"info": "Rate saved!", "done": True}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -142,4 +161,4 @@ def cleanup_scheduler():
 if __name__ == "__main__":
     scheduler_thread = Thread(target=cleanup_scheduler, daemon=True)
     scheduler_thread.start()
-    app.run(port=8082, debug=True)
+    app.run(port=8082, debug=True, host="0.0.0.0")

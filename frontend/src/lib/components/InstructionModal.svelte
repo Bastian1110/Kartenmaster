@@ -3,7 +3,6 @@
   import { createEventDispatcher } from 'svelte';
   const dispatch = createEventDispatcher();
   let nametag = '';
-
   function handleSubmit() {
     dispatch('submit', { value: nametag });
   }

@@ -137,6 +137,10 @@ class UnoEnv(gym.Env):
         played_card = self.deck[action] if action < 108 else {}
         # Check if the action is invalid (the selected card cant go on top)
         if validation_mask[action] == 0:
+            # Check this logic in the future (give the player a card i wrong action)
+            new_card = self.deal_cards(1)
+            new_card_info = self.deck[new_card[0]] if new_card else {}
+            self.players[self.actual_player] += new_card
             self.last_player = self.actual_player
             self.actual_player = self.get_next_player(self.actual_player)
             observation = self._get_obs()
@@ -146,7 +150,7 @@ class UnoEnv(gym.Env):
                 "valid_action": False,
                 "type": "invalid",
                 "card": played_card,
-                "message": f"invalid action {action}",
+                "message": f"invalid action ",
             }
             return observation, reward, done, truncated, info
 
@@ -162,7 +166,7 @@ class UnoEnv(gym.Env):
                 "valid_action": True,
                 "type": "color",
                 "card": played_card,
-                "message": f"color changed to {action}",
+                "message": f"color changed to {COLORS[action - 108]}",
             }
             return observation, reward, done, truncated, info
 
@@ -183,7 +187,7 @@ class UnoEnv(gym.Env):
                 "valid_action": True,
                 "type": "draw",
                 "card": new_card_data,
-                "message": f"player took a card {action}",
+                "message": f"player took a card",
             }
             return observation, reward, done, truncated, info
 
@@ -265,7 +269,7 @@ class UnoEnv(gym.Env):
                 "valid_action": True,
                 "type": "normal",
                 "card": card_info,
-                "message": f"{original_next_player} was skipped!",
+                "message": f"Player {original_next_player} was skipped!",
             }
             return 0.5, False, info
         if card["symbol"] == "R":
@@ -277,7 +281,7 @@ class UnoEnv(gym.Env):
                     "valid_action": True,
                     "type": "normal",
                     "card": card_info,
-                    "message": f"The game changed direction {self.direction}",
+                    "message": f"The game changed direction",
                 }
                 return (0.5, False, info)
             if self.direction == 1:
@@ -288,7 +292,7 @@ class UnoEnv(gym.Env):
                     "valid_action": True,
                     "type": "normal",
                     "card": card_info,
-                    "message": f"The game changed direction {self.direction}",
+                    "message": f"The game changed direction",
                 }
                 return (0.5, False, info)
         self.last_player = self.actual_player
