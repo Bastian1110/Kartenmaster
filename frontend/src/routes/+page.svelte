@@ -11,6 +11,9 @@
   import { onMount } from "svelte";
   import { WinnerCat, LooserCat, SadPhone } from "$lib/assets";
 
+  const API = "https://api.kartenmaster.sebastian-mora.site";
+  //const API = "http://localhost:8082";
+
   type CardInfo = {
     id: number;
     color: string;
@@ -54,7 +57,7 @@
   // Function to end game and register game data
   const handleEndGame = async () => {
     try {
-      let response = await fetch("http://localhost:8082/end-game", {
+      let response = await fetch(`${API}/end-game`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -78,7 +81,7 @@
   // Function to rate the model
   const handleRateModel = async () => {
     try {
-      let response = await fetch("http://localhost:8082/rate-model", {
+      let response = await fetch(`${API}/rate-model`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -170,7 +173,7 @@
   const createEnv = async () => {
     if (!sessionStorage.getItem("game_started")) {
       try {
-        let response = await fetch("http://localhost:8082/start-game", {
+        let response = await fetch(`${API}/start-game`, {
           method: "GET",
           credentials: "include",
         });
@@ -191,7 +194,7 @@
 
   const resetGame = async () => {
     try {
-      let response = await fetch("http://localhost:8082/reset", {
+      let response = await fetch(`${API}/reset`, {
         method: "GET",
         credentials: "include",
       });
@@ -210,7 +213,7 @@
 
   const updateGameState = async () => {
     try {
-      const response = await fetch("http://localhost:8082/game-state", {
+      const response = await fetch(`${API}/game-state`, {
         method: "GET",
         credentials: "include",
       });
@@ -231,7 +234,7 @@
 
   const handleHumanCard = async (id: number, playerHandId: number) => {
     try {
-      let response = await fetch("http://localhost:8082/make-action", {
+      let response = await fetch(`${API}/make-action`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -256,7 +259,7 @@
 
   const handleHumanDraw = async (playerHandId: number) => {
     try {
-      let response = await fetch("http://localhost:8082/make-action", {
+      let response = await fetch(`${API}/make-action`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -279,7 +282,7 @@
 
   const handleHumanColorSelection = async (color: number) => {
     try {
-      let response = await fetch("http://localhost:8082/make-action", {
+      let response = await fetch(`${API}/make-action`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -305,7 +308,7 @@
 
   const handleRobotAction = async () => {
     try {
-      let response = await fetch("http://localhost:8082/get-agent-action", {
+      let response = await fetch(`${API}/get-agent-action`, {
         method: "GET",
         credentials: "include",
       });
@@ -461,7 +464,7 @@
       cards={playersCards[1]}
       playerId={1}
       {actualPlayer}
-      enabledReverseHand={true}
+      enabledReverseHand={false}
     />
     <div class=" font-bold text-center row-span-3 text-transparent">C</div>
     <div class=" font-bold text-center flex items-center justify-center">
