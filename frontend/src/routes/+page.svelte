@@ -39,6 +39,7 @@
   let actualInfo = "";
   let lastGameRecord = "";
   let lastRating = 0;
+  let rated = false;
 
   $: if (virtualGameEnded) {
     setTimeout(() => {
@@ -95,6 +96,7 @@
       if (response.ok) {
         const data = await response.json();
         console.log("Record Submited ", data);
+        rated = true;
       }
     } catch (err) {
       console.log(err);
@@ -204,6 +206,8 @@
         gameEnded = false;
         virtualGameEnded = false;
         actualInfo = "";
+        lastRating = 0;
+        rated = false;
         await updateGameState();
       }
     } catch (err) {
@@ -434,7 +438,7 @@
           <svg
             class={`h-8 w-8 group-hover:text-[#696cf0] inline-block ml-2 transition-all duration-300 ${
               lastRating === 0 ? "text-slate-500" : "text-white"
-            }`}
+            } ${rated ? "border-emerald-500 text-emerald-300" : ""}`}
             width="24"
             height="24"
             viewBox="0 0 24 24"
