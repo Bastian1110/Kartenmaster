@@ -11,8 +11,8 @@
   import { onMount } from "svelte";
   import { WinnerCat, LooserCat, SadPhone } from "$lib/assets";
 
-  const API = "https://api.kartenmaster.sebastian-mora.site";
-  //const API = "http://localhost:8082";
+  //const API = "https://api.kartenmaster.sebastian-mora.site";
+  const API = "http://localhost:8082";
 
   type CardInfo = {
     id: number;
@@ -375,7 +375,7 @@
       <span class="text-sm"
         >(If you are playing on mobile, please try on your laptop)</span
       >
-      <img src={SadPhone} alt="cat" class="w-[16rem] h-[16rem]"/>
+      <img src={SadPhone} alt="cat" class="w-[16rem] h-[16rem]" />
     </div>
   </div>
 </div>

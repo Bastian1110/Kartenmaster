@@ -83,9 +83,10 @@ def get_agent_action():
         algo = agents[game_id][0]
         obs = env._get_obs()
         action = algo.compute_single_action(obs, policy_id="alpha")  # Adjust policy_id based on your setup
-        _obs, _reward, done, _truncated, info = env.step(action)
+        print("Action by robot : ", action)
+        _obs, _reward, done, _truncated, info = games[game_id][0].step({games[game_id][0].actual_player: action})
         update_last_activity(game_id)
-        return jsonify({"info": info, "done": done}), 200
+        return jsonify({"info": info, "done": done['__all__']}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -132,10 +133,8 @@ def post_make_action():
         action = data["action"]
         print({games[game_id][0].actual_player: action})
         _obs, _reward, done, _truncated, info = games[game_id][0].step({games[game_id][0].actual_player: action})
-        print(info)
         update_last_activity(game_id)
-        print("aqui si llego")
-        return jsonify({"info": info, "done": done}), 200
+        return jsonify({"info": info, "done": done['__all__']}), 200
 
     except Exception as e:
         print(e)
