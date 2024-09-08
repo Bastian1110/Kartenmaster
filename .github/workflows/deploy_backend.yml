@@ -1,0 +1,31 @@
+name: Deploy Flask Backend
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    if: contains(github.event.head_commit.message, 'backend')
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.VM_SSH_KEY }}
+
+    - name: Deploy to VM using SSH
+      run: |
+        ssh root@216.238.82.152 << 'EOF'
+          cd /opt/Kartenmaster
+          source ~/miniconda3/bin/activate kartenmaster
+          git pull origin master
+          cd multi_agent_project
+          pip install -r requirements.txt
+          pm2 restart kartenmaster || pm2 start server.py --name kartenmaster
+        EOF
