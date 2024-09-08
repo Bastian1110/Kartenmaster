@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, session
 from flask_cors import CORS
-from uno import UnoEnv
+from single_agent.uno import UnoEnv
 from sb3_contrib.ppo_mask import MaskablePPO
 from pymongo import MongoClient
 from bson import ObjectId

@@ -3,7 +3,7 @@ This is a playgorund that (will) contain usefull functions to play with UNO agen
 By : Sebastian Mora (@Bastian1110)
 """
 
-from uno import UnoEnv
+from single_agent.uno import UnoEnv
 from sb3_contrib.ppo_mask import MaskablePPO
 import numpy as np
 

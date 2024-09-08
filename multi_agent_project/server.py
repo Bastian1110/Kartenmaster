@@ -1,14 +1,11 @@
 from flask import Flask, jsonify, request, session
 from flask_cors import CORS
-from uno import UnoEnv
-from sb3_contrib.ppo_mask import MaskablePPO
 from pymongo import MongoClient
 from bson import ObjectId
 from datetime import datetime
 from threading import Thread
 from time import sleep
 import uuid
-
 import ray
 from ray.rllib.algorithms import PPO
 from ray.rllib.algorithms.ppo import PPOConfig
@@ -23,19 +20,25 @@ from datetime import datetime
 from threading import Thread
 from time import sleep
 from ray import tune
+from dotenv import load_dotenv
+import os
 
 # Initialize Ray
 ray.init(ignore_reinit_error=True)
 
-MODEL_PATH = "./models/KartenmasterV2.0/"
-MODEL_ID = "KartenMasterPPO&HelpV2.0"
+# Initialize ENV vars
+load_dotenv()
+MODEL_PATH = os.getenv("MODEL_PATH")
+MODEL_ID = os.getenv("MODEL_ID")
+MONGO_URI = os.getenv("MONGO_URI")
+FLASK_SECRET = os.getenv("FLASK_SECRET")
 
 app = Flask("UNO Playground")
 CORS(app, supports_credentials=True)
-app.secret_key = "your_secret_key"
+app.secret_key = FLASK_SECRET
 
 # Database Connection
-conn = MongoClient('mongodb://localhost:27017')
+conn = MongoClient(MONGO_URI)
 database = conn["Kartenmaster"]
 game_collection = database["Game"]
 
@@ -82,7 +85,7 @@ def get_agent_action():
         env = games[game_id][0]
         algo = agents[game_id][0]
         obs = env._get_obs()
-        action = algo.compute_single_action(obs, policy_id="alpha")  # Adjust policy_id based on your setup
+        action = algo.compute_single_action(obs, policy_id="alpha") 
         print("Action by robot : ", action)
         _obs, _reward, done, _truncated, info = games[game_id][0].step({games[game_id][0].actual_player: action})
         update_last_activity(game_id)
@@ -176,7 +179,7 @@ def rate_model():
         return jsonify({"error": str(e)}), 400
     
 
-TIMEOUT_SECONDS = 600  # 10 minutes timeout
+TIMEOUT_SECONDS = 300  # 5 minutes timeout
 
 def cleanup_game(game_id):
     if game_id in games:

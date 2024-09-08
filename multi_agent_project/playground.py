@@ -1,9 +1,8 @@
-import ray
 from ray.rllib.algorithms import PPOConfig, PPO
 from ray.rllib.policy.policy import PolicySpec
 from ray.rllib.models import ModelCatalog
 from agent import TorchActionMaskModel
-from uno import UnoEnv
+from single_agent.uno import UnoEnv
 import ray.tune as tune
 
 # Register the environment and model
@@ -31,7 +30,7 @@ config = (
 
 # Load the trained algorithm
 algo = PPO(config)
-algo.restore("./models/KartenmasterV2.0/")
+algo.restore("./models/KartenmasterV2.1/")
 
 # Initialize the environment and reset it
 env = UnoEnv(config={"n_players": 2})  # Ensure this matches training config

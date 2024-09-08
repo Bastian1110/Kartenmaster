@@ -1,13 +1,8 @@
-import ray
 from ray.rllib.algorithms import PPOConfig, PPO
 from ray.rllib.policy.policy import PolicySpec
 from ray.tune.logger import pretty_print
-from uno import UnoEnv
+from single_agent.uno import UnoEnv
 import ray.tune as tune 
-import gymnasium as gym
-import os
-import ray
-from ray.rllib.algorithms import ppo
 from ray.rllib.policy.policy import PolicySpec
 from ray.tune import register_env
 from ray.rllib.models import ModelCatalog
@@ -40,10 +35,22 @@ config = (
 
 algo = PPO(config)
 
-for i in range(100):
+
+
+import matplotlib.pyplot as plt
+rewards = []
+
+for i in range(1000):
     result = algo.train()
     print(pretty_print(result))
+    rewards.append(result['episode_reward_mean'])
 
     if i % 10 == 0:
-        checkpoint = algo.save("./models/KartenmasterV2.0")
+        checkpoint = algo.save("./models/KartenmasterV2.1")
         print("Checkpoint saved at", checkpoint)
+        plt.plot(rewards)
+        plt.xlabel('Training Iteration')
+        plt.ylabel('Average Reward')
+        plt.title('Training Progress')
+        plt.pause(0.01)  # pause a bit so that plots are updated
+plt.show()

@@ -3,7 +3,6 @@ Ray RL MultiAgent environment to train UNO agents
 By Sebastian Mora (@bastian1110)
 """
 
-from typing import Dict
 import gymnasium as gym
 from random import shuffle
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
@@ -152,7 +151,7 @@ class UnoEnv(MultiAgentEnv):
                 "card": played_card,
                 "message": f"invalid action ",
             }
-            return {self.actual_player : self._get_obs()}, rewards, terminated, truncated, {}
+            return {self.actual_player : self._get_obs()}, rewards, terminated, truncated, info
 
         # If the las card, was a wild card, let the player select a color
         if self.top_card["color"] == "ANY":
@@ -170,7 +169,7 @@ class UnoEnv(MultiAgentEnv):
                 "card": played_card,
                 "message": f"color changed to {COLORS[action - 108]}",
             }
-            return {self.actual_player : self._get_obs()}, rewards, terminated, truncated, {}
+            return {self.actual_player : self._get_obs()}, rewards, terminated, truncated, info
 
         # Handle if the action slected is to draw a card
         if action == 112:
@@ -193,7 +192,7 @@ class UnoEnv(MultiAgentEnv):
                 "card": new_card_data,
                 "message": f"player took a card",
             }
-            return {self.actual_player : self._get_obs()}, rewards, terminated, truncated, {}
+            return {self.actual_player : self._get_obs()}, rewards, terminated, truncated, info
 
         # If the action is a normal card
         reward, done, info = self.play_card(action, played_card)
@@ -201,7 +200,7 @@ class UnoEnv(MultiAgentEnv):
         rewards[player_now] = reward
         terminated = {self.actual_player : done, "__all__" : done}
         truncated = {self.actual_player : done, "__all__" : done}
-        return {self.actual_player : self._get_obs()}, rewards, terminated, truncated, {}
+        return {self.actual_player : self._get_obs()}, rewards, terminated, truncated, info
 
     def play_card(self, card_id, card_info):
         # Remove the card from the players hand, get de card details

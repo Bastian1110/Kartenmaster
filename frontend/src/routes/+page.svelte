@@ -468,7 +468,7 @@
       cards={playersCards[1]}
       playerId={1}
       {actualPlayer}
-      enabledReverseHand={false}
+      enabledReverseHand={true}
     />
     <div class=" font-bold text-center row-span-3 text-transparent">C</div>
     <div class=" font-bold text-center flex items-center justify-center">
