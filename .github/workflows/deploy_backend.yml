@@ -19,6 +19,10 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.VM_SSH_KEY }}
 
+    - name: Add VM to known hosts
+      run: |
+        echo "${{ secrets.KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+
     - name: Deploy to VM using SSH
       run: |
         ssh root@216.238.82.152 << 'EOF'
