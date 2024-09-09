@@ -11,8 +11,8 @@
   import { onMount } from "svelte";
   import { WinnerCat, LooserCat, SadPhone } from "$lib/assets";
 
-  const API = "https://api.kartenmaster.sebastian-mora.site";
-  // const API = "http://localhost:8082";
+  //const API = "https://api.kartenmaster.sebastian-mora.site";
+  const API = "http://localhost:8082";
 
   type CardInfo = {
     id: number;
@@ -375,7 +375,7 @@
       <span class="text-sm"
         >(If you are playing on mobile, please try on your laptop)</span
       >
-      <img src={SadPhone} alt="cat" class="w-[16rem] h-[16rem]" />
+      <img src="sad_phone.png" alt="cat" class="w-[16rem] h-[16rem]" />
     </div>
   </div>
 </div>
@@ -390,7 +390,7 @@
     >
       <div class="flex flex-1 w-[50%]">
         <img
-          src={winner == "Kartenmaster" ? WinnerCat : LooserCat}
+          src={winner == "Kartenmaster" ? "test.png" : "sad.png"}
           alt="cat"
           class="w-full"
         />
@@ -427,18 +427,23 @@
         <button
           on:click={handleRateModel}
           type="submit"
-          disabled={lastRating === 0 ? true : false}
+          disabled={rated ? true : false}
           class={`flex flex-row p-3 text-2xl my-2 font-bold border-2 rounded-lg  ${
             lastRating === 0
               ? "text-slate-500 border-slate-500"
-              : "group hover:border-[#696cf0] hover:text-[#696cf0] transition-all duration-200"
+              : rated ? "" :"group hover:border-[#696cf0] hover:text-[#696cf0] transition-all duration-200"
           }`}
         >
-          Rate KartenMaster
+          {rated ?  "Thanks!" : "Rate model"}
+          {#if rated}
+          <svg class="h-8 w-8 text-white"  fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>          
+          {:else}
           <svg
             class={`h-8 w-8 group-hover:text-[#696cf0] inline-block ml-2 transition-all duration-300 ${
               lastRating === 0 ? "text-slate-500" : "text-white"
-            } ${rated ? "border-emerald-500 text-emerald-300" : ""}`}
+            }`}
             width="24"
             height="24"
             viewBox="0 0 24 24"
@@ -453,6 +458,7 @@
               d="M7 11v 8a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1v-7a1 1 0 0 1 1 -1h3a4 4 0 0 0 4 -4v-1a2 2 0 0 1 4 0v5h3a2 2 0 0 1 2 2l-1 5a2 3 0 0 1 -2 2h-7a3 3 0 0 1 -3 -3"
             /></svg
           >
+          {/if}
         </button>
         <StarRating bind:rating={lastRating} />
       </div>

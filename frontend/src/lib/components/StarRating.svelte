@@ -16,7 +16,7 @@
 <style>
     .star {
         cursor: pointer;
-        outline: none; /* Hide default focus outline */
+        outline: none; 
     }
 </style>
 
