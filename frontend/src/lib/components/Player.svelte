@@ -33,7 +33,7 @@
         >
       {:else}
         <svg
-          class="h-6 w-6 text-white"
+          class="h-6 w-6 text-slate-700 dark:text-white"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

@@ -35,7 +35,7 @@
 >
   <div class="flip-card-inner {flipClass}">
     <div
-      class="flip-card-front rounded-lg"
+      class="flip-card-front rounded-lg text-white"
       style="background-color:{colors[color]};"
     >
       <div class="absolute top-1 left-1">
@@ -51,9 +51,9 @@
       </div>
     </div>
     <div
-      class="flip-card-back rounded-lg bg-slate-800 text-center align-middle"
+      class="flip-card-back rounded-lg bg-slate-200 dark:bg-slate-800 text-center align-middle"
     >
-      <div class="text-6xl mt-[50%]">K</div>
+      <div class="text-6xl mt-[50%] text-slate-800 dark:text-white">K</div>
     </div>
   </div>
 </div>
@@ -73,7 +73,6 @@
 
   .flip-card-front,
   .flip-card-back {
-    color: white;
     position: absolute;
     width: 100%;
     height: 100%;

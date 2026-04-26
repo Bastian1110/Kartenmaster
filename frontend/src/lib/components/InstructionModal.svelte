@@ -16,17 +16,17 @@
   }`}
 >
   <div
-    class="z-[100] fixed left-0 top-0 grid h-full w-full grid-cols-12 bg-slate-900 bg-opacity-50"
+    class="z-[100] fixed left-0 top-0 grid h-full w-full grid-cols-12 bg-black/20 dark:bg-slate-900/50"
   >
     <div
-      class="z-[1000] col-span-8 col-start-3 my-auto rounded-2xl bg-slate-900 text-center shadow-lg font-mono"
+      class="z-[1000] col-span-8 col-start-3 my-auto rounded-2xl bg-white dark:bg-slate-900 text-center shadow-lg font-mono"
     >
       <div class="flex flex-row">
-        <h1 class="flex-1 m-8 mb-0 text-4xl font-bold  text-white text-left">
+        <h1 class="flex-1 m-8 mb-0 text-4xl font-bold text-slate-900 dark:text-white text-left">
           Welcome to KartenMaster !
         </h1>
       </div>
-      <div class="flex flex-row mt-8 mb-8 text-white text-left">
+      <div class="flex flex-row mt-8 mb-8 text-slate-900 dark:text-white text-left">
         <div
           class="text-left w-full font-[500] text-lg mx-8 align-center justify-center"
         >
@@ -39,7 +39,7 @@
           <input
             bind:value={nametag}
             placeholder="- GAL -"
-            class="bg-slate-900 text-xl border-white border-2 rounded-lg p-3 w-[80%] text-center my-2"
+            class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white text-xl border-slate-400 dark:border-white border-2 rounded-lg p-3 w-[80%] text-center my-2"
           />
           <button
             type="submit"

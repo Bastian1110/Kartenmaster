@@ -10,9 +10,9 @@
   import { Confetti } from "svelte-confetti";
   import { onMount } from "svelte";
   import { WinnerCat, LooserCat, SadPhone } from "$lib/assets";
+  import { PUBLIC_API_URL } from "$env/static/public";
 
-  const API = "https://api.kartenmaster.sebastian-mora.site";
-  //const API = "http://localhost:8082";
+  const API = PUBLIC_API_URL;
 
   type CardInfo = {
     id: number;
@@ -365,7 +365,7 @@
     class="z-[1000] fixed left-0 top-0 h-full w-full flex bg-slate-800 bg-opacity-80 justify-center align-middle"
   >
     <div
-      class="z-[1001] w-[80vw] h-[60vh] md:w-[50vw] md:h-[55vh] col-span-8 col-start-3 my-auto rounded-2xl bg-slate-900 text-white text-center items-center font-mono justify-center align-middle content-center flex flex-col"
+      class="z-[1001] w-[80vw] h-[60vh] md:w-[50vw] md:h-[55vh] col-span-8 col-start-3 my-auto rounded-2xl bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white text-center items-center font-mono justify-center align-middle content-center flex flex-col"
     >
       <h2 class="font-bold text-4xl">Too Little!</h2>
       <p class="text-lg m-2">
@@ -382,11 +382,11 @@
 
 {#if gameEnded}
   <main
-    class="grid grid-cols-3 grid-rows-3 w-screen h-screen text-white"
+    class="grid grid-cols-3 grid-rows-3 w-screen h-screen text-slate-900 dark:text-white"
     style="grid-template-columns: 20% 60% 20%; grid-template-rows: 20% 60% 20%;"
   >
     <div
-      class="col-start-2 row-start-2 bg-slate-900 rounded-xl flex items-center flex-row justify-center align-middle"
+      class="col-start-2 row-start-2 bg-slate-100 dark:bg-slate-900 rounded-xl flex items-center flex-row justify-center align-middle"
     >
       <div class="flex flex-1 w-[50%]">
         <img
@@ -466,7 +466,7 @@
   </main>
 {:else}
   <main
-    class="grid grid-cols-3 grid-rows-3 w-screen h-screen text-white"
+    class="grid grid-cols-3 grid-rows-3 w-screen h-screen text-slate-900 dark:text-white"
     style="grid-template-columns: 20% 60% 20%;"
   >
     <div class="font-bold text-center row-span-3 text-transparent">A</div>
@@ -507,7 +507,7 @@
     />
   </main>
 {/if}
-<div class="absolute bottom-0 right-5 text-white font-mono text-lg">
+<div class="absolute bottom-0 right-5 text-slate-600 dark:text-white font-mono text-lg">
   Kartenmaster, 2024 by : <a
     class="underline"
     target="_blank"

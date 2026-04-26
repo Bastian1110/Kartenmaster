@@ -1,26 +1,18 @@
 from flask import Flask, jsonify, request, session
 from flask_cors import CORS
-from pymongo import MongoClient
-from bson import ObjectId
 from datetime import datetime
 from threading import Thread
 from time import sleep
-import uuid
-import ray
+from ray import tune
 from ray.rllib.algorithms import PPO
 from ray.rllib.algorithms.ppo import PPOConfig
 from ray.rllib.models import ModelCatalog
 from ray.rllib.policy.policy import PolicySpec
 from uno import UnoEnv
 from agent import TorchActionMaskModel
-import uuid
-from pymongo import MongoClient
-from bson import ObjectId
-from datetime import datetime
-from threading import Thread
-from time import sleep
-from ray import tune
 from dotenv import load_dotenv
+import uuid
+import ray
 import os
 
 # Initialize Ray
@@ -37,10 +29,22 @@ app = Flask("UNO Playground")
 CORS(app, supports_credentials=True)
 app.secret_key = FLASK_SECRET
 
-# Database Connection
-conn = MongoClient(MONGO_URI)
-database = conn["Kartenmaster"]
-game_collection = database["Game"]
+# Optional MongoDB connection — server starts normally without it
+mongo_available = False
+game_collection = None
+try:
+    if MONGO_URI:
+        from pymongo import MongoClient
+        from bson import ObjectId
+        conn = MongoClient(MONGO_URI, serverSelectionTimeoutMS=3000)
+        conn.server_info()  # raises if unreachable
+        game_collection = conn["Kartenmaster"]["Game"]
+        mongo_available = True
+        print("MongoDB connected.")
+    else:
+        print("MONGO_URI not set — running without database.")
+except Exception as e:
+    print(f"MongoDB unavailable: {e} — running without database.")
 
 # Register custom model and environment
 ModelCatalog.register_custom_model("custom_action_mask_model", TorchActionMaskModel)
@@ -151,13 +155,15 @@ def end_game():
         return jsonify({"error": "Game not found"}), 400
     try:
         data = request.get_json()
-        data["winner"] = "Kartenmaster" if  games[game_id][0].actual_player == 1 else data["username"]
+        data["winner"] = "Kartenmaster" if games[game_id][0].actual_player == 1 else data["username"]
         data["players"] = games[game_id][0].n_players
         data["draw"] = len(games[game_id][0].draw)
         data["model"] = MODEL_ID
-        result = game_collection.insert_one(data)
         update_last_activity(game_id)
-        return jsonify({"info": "Game saved!", "done": True, "record_id" : str(result.inserted_id)}), 200
+        if mongo_available:
+            result = game_collection.insert_one(data)
+            return jsonify({"info": "Game saved!", "done": True, "record_id": str(result.inserted_id)}), 200
+        return jsonify({"info": "Game ended (no database).", "done": True, "record_id": None}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -167,11 +173,13 @@ def rate_model():
     game_id = session.get("game_id")
     if not (game_id and game_id in games):
         return jsonify({"error": "Game not found"}), 400
+    if not mongo_available:
+        return jsonify({"info": "Rating skipped (no database).", "done": True}), 200
     try:
         data = request.get_json()
         rate = data["rate"]
         idx = data["record_id"]
-        game_collection.update_one({"_id": ObjectId(idx)}, {"$set": {"rate" : rate}})
+        game_collection.update_one({"_id": ObjectId(idx)}, {"$set": {"rate": rate}})
         update_last_activity(game_id)
         return jsonify({"info": "Rate saved!", "done": True}), 200
 
